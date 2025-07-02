@@ -1,0 +1,788 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Interactive Harmonic Tone Analyzer</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+    <style>
+        * {
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
+            margin: 0;
+            padding: 10px;
+            background-color: #f5f5f5;
+            touch-action: manipulation;
+        }
+        
+        .container {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        
+        .top-panel {
+            background: white;
+            padding: 15px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        .bottom-panel {
+            background: white;
+            padding: 15px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        .chart-container {
+            height: 250px;
+            margin-bottom: 15px;
+            position: relative;
+        }
+        
+        .controls {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-bottom: 20px;
+            justify-content: center;
+            overflow-x: auto;
+            padding: 5px 0;
+        }
+        
+        .harmonic-control {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            background: #f8f9fa;
+            padding: 8px 6px;
+            border-radius: 8px;
+            min-width: 65px;
+            flex-shrink: 0;
+        }
+        
+        .harmonic-label {
+            font-weight: bold;
+            margin-bottom: 3px;
+            font-size: 12px;
+        }
+        
+        .freq-label {
+            font-size: 9px;
+            color: #666;
+            margin-bottom: 8px;
+        }
+        
+        .slider-container {
+            position: relative;
+            width: 40px;
+            height: 120px;
+            margin: 5px 0;
+        }
+        
+        .slider {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 120px;
+            height: 20px;
+            background: linear-gradient(to right, #ddd 0%, #4CAF50 100%);
+            outline: none;
+            border-radius: 10px;
+            transform: rotate(-90deg);
+            transform-origin: center;
+            position: absolute;
+            top: 50px;
+            left: -40px;
+        }
+        
+        .slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 20px;
+            height: 20px;
+            background: #2196F3;
+            cursor: pointer;
+            border-radius: 50%;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+        
+        .slider::-moz-range-thumb {
+            width: 20px;
+            height: 20px;
+            background: #2196F3;
+            cursor: pointer;
+            border-radius: 50%;
+            border: none;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+        
+        .value-display {
+            font-size: 10px;
+            text-align: center;
+            margin-top: 8px;
+            line-height: 1.1;
+            min-height: 24px;
+        }
+        
+        .phase-display {
+            font-size: 10px;
+            color: #2020d0;
+            margin-top: 3px;
+        }
+        
+        .buttons {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            margin-bottom: 15px;
+            justify-content: center;
+        }
+        
+        .btn {
+            padding: 12px 16px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            touch-action: manipulation;
+            transition: all 0.2s;
+            min-width: 80px;
+        }
+        
+        .btn:active {
+            transform: scale(0.95);
+        }
+        
+        .btn-play { 
+            background: #2d8a2f; 
+            color: white; 
+        }
+        
+        .btn-play:active { 
+            background: #1e5d20; 
+        }
+        
+        .btn-stop { 
+            background: #d32f2f; 
+            color: white; 
+        }
+        
+        .btn-stop:active { 
+            background: #9a1e1e; 
+        }
+        
+        .btn-reset { 
+            background: #f57c00; 
+            color: white; 
+        }
+        
+        .btn-reset:active { 
+            background: #e65100; 
+        }
+        
+        .btn-phase { 
+            background: #8e24aa; 
+            color: white; 
+        }
+        
+        .btn-phase:active { 
+            background: #6a1b9a; 
+        }
+        
+        .btn-preset { 
+            background: #1976d2; 
+            color: white; 
+        }
+        
+        .btn-preset:active { 
+            background: #1565c0; 
+        }
+        
+        .presets {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+        
+        h1, h2, h3 {
+            margin-top: 0;
+            text-align: center;
+        }
+        
+        h1 {
+            font-size: 20px;
+            margin-bottom: 15px;
+        }
+        
+        h2 {
+            font-size: 18px;
+            margin-bottom: 15px;
+        }
+        
+        h3 {
+            font-size: 16px;
+            margin-bottom: 10px;
+        }
+        
+        .audio-notice {
+            background: #fff3cd;
+            border: 1px solid #ffeaa7;
+            border-radius: 8px;
+            padding: 10px;
+            margin-bottom: 15px;
+            text-align: center;
+            font-size: 14px;
+            color: #856404;
+        }
+        
+        @media (max-width: 480px) {
+            .container {
+                padding: 0 5px;
+            }
+            
+            .harmonic-control {
+                min-width: 55px;
+                padding: 6px 4px;
+            }
+            
+            .slider-container {
+                width: 35px;
+                height: 100px;
+            }
+            
+            .slider {
+                width: 100px;
+                height: 18px;
+                top: 41px;
+                left: -32px;
+            }
+            
+            .chart-container {
+                height: 200px;
+            }
+            
+            .btn {
+                padding: 10px 12px;
+                font-size: 12px;
+                min-width: 70px;
+            }
+            
+            h1 {
+                font-size: 18px;
+            }
+            
+            h2, h3 {
+                font-size: 16px;
+            }
+        }
+        
+        @media (max-height: 600px) and (orientation: landscape) {
+            .chart-container {
+                height: 150px;
+            }
+            
+            .slider-container {
+                height: 80px;
+            }
+            
+            .slider {
+                width: 80px;
+                top: 30px;
+                left: -22px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="top-panel">
+            <h1>Waveform - Three Cycles</h1>
+            <div class="chart-container">
+                <canvas id="waveformChart"></canvas>
+            </div>
+        </div>
+        
+        <div class="bottom-panel">
+            <h2>Harmonic Control Panel</h2>
+            
+            <div class="audio-notice" id="audioNotice" style="display: none;">
+                Tap "Play Tone" to enable audio on iOS
+            </div>
+            
+            <div class="buttons">
+                <button class="btn btn-play" onclick="playTone()">Play Tone</button>
+                <button class="btn btn-stop" onclick="stopTone()">Stop</button>
+                <button class="btn btn-reset" onclick="resetHarmonics()">Reset</button>
+                <button class="btn btn-phase" onclick="scramblePhase()">Scramble Phase</button>
+                <button class="btn btn-phase" onclick="resetPhase()">Reset Phase</button>
+            </div>
+            
+            <div class="controls" id="harmonicControls"></div>
+            
+            <h3>Waveform Presets:</h3>
+            <div class="presets">
+                <button class="btn btn-preset" onclick="setPreset('sine')">Sine</button>
+                <button class="btn btn-preset" onclick="setPreset('sawtooth')">Sawtooth</button>
+                <button class="btn btn-preset" onclick="setPreset('square')">Square</button>
+                <button class="btn btn-preset" onclick="setPreset('triangle')">Triangle</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Global variables
+        const fs = 44100;
+        const f0 = 440;
+        const duration = 0.5;
+        const numHarmonics = 10;
+        const minDb = -60;
+        const maxDb = 0;
+        
+        let harmonicAmps = new Array(numHarmonics).fill(0);
+        let harmonicPhases = new Array(numHarmonics).fill(0);
+        let audioContext;
+        let currentSource;
+        let chart;
+        let isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+        let audioInitialized = false;
+        
+        // Initialize with fundamental only
+        harmonicAmps[0] = 1.0;
+        
+        // Initialize audio context with iOS compatibility
+        function initAudio() {
+            return new Promise((resolve, reject) => {
+                if (!audioContext) {
+                    try {
+                        // Use webkitAudioContext for older iOS devices
+                        audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                        console.log('AudioContext created, state:', audioContext.state);
+                    } catch (error) {
+                        console.error('Failed to create AudioContext:', error);
+                        reject(error);
+                        return;
+                    }
+                }
+                
+                // Always try to resume on iOS, even if state seems running
+                if (audioContext.state === 'suspended' || isIOS) {
+                    console.log('Attempting to resume AudioContext...');
+                    audioContext.resume().then(() => {
+                        console.log('AudioContext resumed, state:', audioContext.state);
+                        audioInitialized = true;
+                        document.getElementById('audioNotice').style.display = 'none';
+                        resolve();
+                    }).catch((error) => {
+                        console.error('Failed to resume AudioContext:', error);
+                        reject(error);
+                    });
+                } else {
+                    audioInitialized = true;
+                    document.getElementById('audioNotice').style.display = 'none';
+                    resolve();
+                }
+            });
+        }
+        
+        // Generate waveform data for display
+        function generateWaveform() {
+            const cyclesDisplay = 3;
+            const samplesPerCycle = Math.floor(fs / f0);
+            const totalSamples = samplesPerCycle * cyclesDisplay;
+            const waveform = new Array(totalSamples).fill(0);
+            
+            for (let i = 0; i < numHarmonics; i++) {
+                if (harmonicAmps[i] > 0) {
+                    const freq = f0 * (i + 1);
+                    const phaseRad = harmonicPhases[i] * Math.PI / 180;
+                    
+                    for (let j = 0; j < totalSamples; j++) {
+                        const t = j / fs;
+                        waveform[j] += harmonicAmps[i] * Math.sin(2 * Math.PI * freq * t + phaseRad);
+                    }
+                }
+            }
+            
+            // Normalize
+            const maxAmp = Math.max(...waveform.map(Math.abs));
+            if (maxAmp > 0) {
+                for (let i = 0; i < waveform.length; i++) {
+                    waveform[i] /= maxAmp;
+                }
+            }
+            
+            return waveform;
+        }
+        
+        // Generate audio buffer
+        function generateAudioBuffer() {
+            const bufferSize = Math.floor(fs * duration);
+            const buffer = audioContext.createBuffer(1, bufferSize, fs);
+            const data = buffer.getChannelData(0);
+            
+            // Generate composite signal
+            for (let i = 0; i < numHarmonics; i++) {
+                if (harmonicAmps[i] > 0) {
+                    const freq = f0 * (i + 1);
+                    const phaseRad = harmonicPhases[i] * Math.PI / 180;
+                    
+                    for (let j = 0; j < bufferSize; j++) {
+                        const t = j / fs;
+                        data[j] += harmonicAmps[i] * Math.sin(2 * Math.PI * freq * t + phaseRad);
+                    }
+                }
+            }
+            
+            // Normalize
+            const maxAmp = Math.max(...data.map(Math.abs));
+            if (maxAmp > 0) {
+                for (let i = 0; i < bufferSize; i++) {
+                    data[i] = (data[i] / maxAmp) * 0.6; // Reduced volume for mobile
+                }
+            }
+            
+            // Apply fade in/out
+            const fadeSize = Math.floor(0.01 * fs);
+            for (let i = 0; i < fadeSize; i++) {
+                data[i] *= i / fadeSize;
+                data[bufferSize - 1 - i] *= i / fadeSize;
+            }
+            
+            return buffer;
+        }
+        
+        // Play tone with iOS compatibility
+        async function playTone() {
+            try {
+                console.log('Play tone clicked');
+                
+                // Show loading state
+                const playBtn = document.querySelector('.btn-play');
+                const originalText = playBtn.textContent;
+                playBtn.textContent = 'Loading...';
+                playBtn.disabled = true;
+                
+                await initAudio();
+                
+                if (!audioContext) {
+                    throw new Error('AudioContext not available');
+                }
+                
+                console.log('AudioContext state before play:', audioContext.state);
+                
+                // Force another resume attempt for iOS
+                if (audioContext.state !== 'running') {
+                    await audioContext.resume();
+                    console.log('AudioContext state after resume:', audioContext.state);
+                }
+                
+                // Small delay to ensure context is fully running
+                await new Promise(resolve => setTimeout(resolve, 100));
+                
+                await playAudio();
+                
+                playBtn.textContent = originalText;
+                playBtn.disabled = false;
+                
+            } catch (error) {
+                console.error('Play tone failed:', error);
+                
+                const playBtn = document.querySelector('.btn-play');
+                playBtn.textContent = 'Play Tone';
+                playBtn.disabled = false;
+                
+                // Show user-friendly error
+                if (isIOS) {
+                    alert('Audio failed to start. Please ensure your device is not on silent mode and try again.');
+                } else {
+                    alert('Audio playback failed: ' + error.message);
+                }
+            }
+        }
+        
+        async function playAudio() {
+            return new Promise((resolve, reject) => {
+                try {
+                    stopTone();
+                    
+                    const buffer = generateAudioBuffer();
+                    currentSource = audioContext.createBufferSource();
+                    currentSource.buffer = buffer;
+                    
+                    // Add gain node for volume control
+                    const gainNode = audioContext.createGain();
+                    gainNode.gain.setValueAtTime(0, audioContext.currentTime);
+                    gainNode.gain.linearRampToValueAtTime(0.3, audioContext.currentTime + 0.01); // Fade in
+                    gainNode.gain.setValueAtTime(0.3, audioContext.currentTime + duration - 0.01);
+                    gainNode.gain.linearRampToValueAtTime(0, audioContext.currentTime + duration); // Fade out
+                    
+                    currentSource.connect(gainNode);
+                    gainNode.connect(audioContext.destination);
+                    
+                    // Handle playback completion
+                    currentSource.onended = () => {
+                        console.log('Audio playback completed');
+                        currentSource = null;
+                        resolve();
+                    };
+                    
+                    currentSource.onerror = (error) => {
+                        console.error('Audio playback error:', error);
+                        currentSource = null;
+                        reject(error);
+                    };
+                    
+                    console.log('Starting audio playback...');
+                    currentSource.start(0);
+                    
+                    audioInitialized = true;
+                    document.getElementById('audioNotice').style.display = 'none';
+                    
+                } catch (error) {
+                    console.error('PlayAudio failed:', error);
+                    reject(error);
+                }
+            });
+        }
+        
+        // Stop tone
+        function stopTone() {
+            if (currentSource) {
+                try {
+                    currentSource.stop();
+                } catch (error) {
+                    // Ignore errors from stopping already stopped sources
+                }
+                currentSource = null;
+            }
+        }
+        
+        // Update displays
+        function updateDisplays() {
+            const waveform = generateWaveform();
+            const timeMs = waveform.map((_, i) => (i / fs) * 1000);
+            
+            chart.data.labels = timeMs;
+            chart.data.datasets[0].data = waveform;
+            chart.update('none');
+            
+            // Update value displays
+            for (let i = 0; i < numHarmonics; i++) {
+                const valueEl = document.getElementById(`value-${i}`);
+                const phaseEl = document.getElementById(`phase-${i}`);
+                
+                if (harmonicAmps[i] > 0) {
+                    const db = 20 * Math.log10(harmonicAmps[i]);
+                    valueEl.innerHTML = `${db.toFixed(1)}dB<br>(${harmonicAmps[i].toFixed(2)})`;
+                } else {
+                    valueEl.innerHTML = `-∞dB<br>(0.00)`;
+                }
+                
+                phaseEl.textContent = `φ: ${Math.round(harmonicPhases[i])}°`;
+            }
+        }
+        
+        // Slider callback with touch optimization
+        function sliderChanged(harmonicIndex, value) {
+            const dbValue = parseFloat(value);
+            
+            if (dbValue <= minDb + 0.1) {
+                harmonicAmps[harmonicIndex] = 0;
+            } else {
+                harmonicAmps[harmonicIndex] = Math.pow(10, dbValue / 20);
+            }
+            
+            updateDisplays();
+        }
+        
+        // Reset harmonics
+        function resetHarmonics() {
+            harmonicAmps.fill(0);
+            harmonicAmps[0] = 1.0;
+            harmonicPhases.fill(0);
+            
+            // Reset sliders
+            for (let i = 0; i < numHarmonics; i++) {
+                const slider = document.getElementById(`slider-${i}`);
+                if (i === 0) {
+                    slider.value = 0; // 0 dB for fundamental
+                } else {
+                    slider.value = minDb;
+                }
+            }
+            
+            updateDisplays();
+        }
+        
+        // Scramble phase
+        function scramblePhase() {
+            for (let i = 0; i < numHarmonics; i++) {
+                harmonicPhases[i] = Math.random() * 360;
+            }
+            updateDisplays();
+        }
+        
+        // Reset phase
+        function resetPhase() {
+            harmonicPhases.fill(0);
+            updateDisplays();
+        }
+        
+        // Set preset
+        function setPreset(type) {
+            harmonicAmps.fill(0);
+            harmonicPhases.fill(0);
+            
+            switch (type) {
+                case 'sine':
+                    harmonicAmps[0] = 1.0;
+                    break;
+                case 'sawtooth':
+                    for (let i = 0; i < numHarmonics; i++) {
+                        harmonicAmps[i] = 1 / (i + 1);
+                    }
+                    break;
+                case 'square':
+                    for (let i = 0; i < numHarmonics; i += 2) {
+                        harmonicAmps[i] = 1 / (i + 1);
+                    }
+                    break;
+                case 'triangle':
+                    for (let i = 0; i < numHarmonics; i += 2) {
+                        harmonicAmps[i] = 1 / Math.pow(i + 1, 2);
+                    }
+                    break;
+            }
+            
+            // Update sliders
+            for (let i = 0; i < numHarmonics; i++) {
+                const slider = document.getElementById(`slider-${i}`);
+                if (harmonicAmps[i] > 0) {
+                    slider.value = 20 * Math.log10(harmonicAmps[i]);
+                } else {
+                    slider.value = minDb;
+                }
+            }
+            
+            updateDisplays();
+        }
+        
+        // Initialize
+        window.addEventListener('load', function() {
+            // Create harmonic controls
+            const controlsDiv = document.getElementById('harmonicControls');
+            
+            for (let i = 0; i < numHarmonics; i++) {
+                const controlDiv = document.createElement('div');
+                controlDiv.className = 'harmonic-control';
+                
+                const initialDb = (i === 0) ? 0 : minDb;
+                
+                controlDiv.innerHTML = `
+                    <div class="harmonic-label">H${i + 1}</div>
+                    <div class="freq-label">${Math.round(f0 * (i + 1))}Hz</div>
+                    <div class="slider-container">
+                        <input type="range" class="slider" id="slider-${i}" 
+                               min="${minDb}" max="${maxDb}" value="${initialDb}" step="0.1"
+                               oninput="sliderChanged(${i}, this.value)"
+                               ontouchstart="this.focus()" ontouchend="this.blur()">
+                    </div>
+                    <div class="value-display" id="value-${i}"></div>
+                    <div class="phase-display" id="phase-${i}"></div>
+                `;
+                
+                controlsDiv.appendChild(controlDiv);
+            }
+            
+            // Initialize chart with mobile optimizations
+            const ctx = document.getElementById('waveformChart').getContext('2d');
+            Chart.defaults.font.size = 11;
+            
+            chart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: [],
+                    datasets: [{
+                        label: 'Amplitude',
+                        data: [],
+                        borderColor: '#2196F3',
+                        borderWidth: 2,
+                        fill: false,
+                        pointRadius: 0,
+                        tension: 0
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    interaction: {
+                        intersect: false
+                    },
+                    scales: {
+                        x: {
+                            title: {
+                                display: true,
+                                text: 'Time (ms)',
+                                font: {
+                                    size: 12
+                                }
+                            },
+                            ticks: {
+                                maxTicksLimit: 6,
+                                font: {
+                                    size: 10
+                                },
+                                callback: function(value, index, values) {
+                                    return value.toFixed(1);
+                                }
+                            }
+                        },
+                        y: {
+                            title: {
+                                display: true,
+                                text: 'Amplitude',
+                                font: {
+                                    size: 12
+                                }
+                            },
+                            min: -1.5,
+                            max: 1.5,
+                            ticks: {
+                                font: {
+                                    size: 10
+                                }
+                            }
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            display: false
+                        }
+                    },
+                    animation: {
+                        duration: 0
+                    }
+                }
+            });
+            
+            updateDisplays();
+        });
+        
+        // Handle page visibility for audio cleanup
+        document.addEventListener('visibilitychange', function() {
+            if (document.visibilityState === 'hidden') {
+                stopTone();
+            }
+        });
+    </script>
+</body>
+</html>
