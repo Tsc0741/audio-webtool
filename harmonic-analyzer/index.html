@@ -2,302 +2,409 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>Interactive Harmonic Tone Analyzer</title>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Waveform Decomposer - Grid Interface</title>
     <style>
-        * {
-            box-sizing: border-box;
-            -webkit-tap-highlight-color: transparent;
-        }
-        
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
+            font-family: Arial, sans-serif;
             margin: 0;
-            padding: 10px;
+            padding: 20px;
             background-color: #f5f5f5;
-            touch-action: manipulation;
         }
-        
         .container {
             display: flex;
             flex-direction: column;
-            gap: 15px;
+            gap: 20px;
             max-width: 1400px;
             margin: 0 auto;
         }
-        
         .top-panel {
             background: white;
-            padding: 15px;
+            padding: 20px;
             border-radius: 10px;
             box-shadow: 0 2px 10px rgba(0,0,0,0.1);
         }
-        
         .bottom-panel {
             background: white;
-            padding: 15px;
+            padding: 20px;
             border-radius: 10px;
             box-shadow: 0 2px 10px rgba(0,0,0,0.1);
         }
-        
-        .chart-container {
-            height: 250px;
-            margin-bottom: 15px;
+        .grid-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin: 20px 0;
             position: relative;
         }
-        
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(21, 50px);
+            grid-template-rows: repeat(21, 25px);
+            gap: 1px;
+            background-color: #ccc;
+            border: 2px solid #333;
+            margin: 10px;
+            position: relative;
+        }
+        .interpolation-canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            pointer-events: none;
+            z-index: 10;
+        }
+        .grid-cell {
+            background-color: white;
+            border: none;
+            cursor: pointer;
+            transition: background-color 0.1s;
+        }
+        .grid-cell:hover {
+            background-color: #e3f2fd;
+        }
+        .grid-cell.selected {
+            background-color: #2196f3;
+        }
+        .axis-labels {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .y-axis {
+            display: flex;
+            flex-direction: column-reverse;
+            gap: 1px;
+            font-size: 10px;
+            width: 40px;
+            text-align: right;
+            height: 520px;
+            justify-content: space-between;
+        }
+        .y-label {
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+        }
+        .x-axis {
+            display: flex;
+            gap: 1px;
+            font-size: 10px;
+            margin-left: 50px;
+            margin-top: 5px;
+            width: 1020px;
+            justify-content: space-between;
+        }
+        .x-label {
+            text-align: center;
+        }
         .controls {
             display: flex;
             flex-wrap: wrap;
-            gap: 8px;
+            gap: 10px;
             margin-bottom: 20px;
             justify-content: center;
-            overflow-x: auto;
-            padding: 5px 0;
         }
-        
         .harmonic-control {
             display: flex;
             flex-direction: column;
             align-items: center;
             background: #f8f9fa;
-            padding: 8px 6px;
+            padding: 8px;
             border-radius: 8px;
-            min-width: 65px;
-            flex-shrink: 0;
+            min-width: 70px;
         }
-        
         .harmonic-label {
             font-weight: bold;
-            margin-bottom: 3px;
-            font-size: 12px;
+            margin-bottom: 5px;
         }
-        
         .freq-label {
-            font-size: 9px;
+            font-size: 10px;
             color: #666;
-            margin-bottom: 8px;
+            margin-bottom: 5px;
         }
-        
-        .slider-container {
-            position: relative;
-            width: 40px;
-            height: 120px;
-            margin: 5px 0;
-        }
-        
         .slider {
-            -webkit-appearance: none;
-            appearance: none;
-            width: 120px;
-            height: 20px;
-            background: linear-gradient(to right, #ddd 0%, #4CAF50 100%);
+            width: 35px;
+            height: 150px;
+            -webkit-appearance: slider-vertical;
+            appearance: slider-vertical;
+            background: linear-gradient(to top, #ddd 0%, #ddd 100%);
             outline: none;
-            border-radius: 10px;
-            transform: rotate(-90deg);
-            transform-origin: center;
-            position: absolute;
-            top: 50px;
-            left: -40px;
+            margin: 8px 0;
+            pointer-events: none;
+            opacity: 0.7;
         }
-        
-        .slider::-webkit-slider-thumb {
-            -webkit-appearance: none;
-            appearance: none;
-            width: 20px;
-            height: 20px;
-            background: #2196F3;
-            cursor: pointer;
-            border-radius: 50%;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
-        }
-        
-        .slider::-moz-range-thumb {
-            width: 20px;
-            height: 20px;
-            background: #2196F3;
-            cursor: pointer;
-            border-radius: 50%;
-            border: none;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
-        }
-        
         .value-display {
-            font-size: 10px;
+            font-size: 14px;
             text-align: center;
-            margin-top: 8px;
-            line-height: 1.1;
-            min-height: 24px;
+            margin-top: 10px;
+            line-height: 1.2;
         }
-        
         .phase-display {
-            font-size: 10px;
+            font-size: 14px;
             color: #2020d0;
-            margin-top: 3px;
+            margin-top: 5px;
         }
-        
         .buttons {
             display: flex;
-            gap: 8px;
+            gap: 10px;
             flex-wrap: wrap;
-            margin-bottom: 15px;
-            justify-content: center;
+            margin-bottom: 20px;
         }
-        
         .btn {
-            padding: 12px 16px;
+            padding: 10px 15px;
             border: none;
-            border-radius: 8px;
+            border-radius: 5px;
             cursor: pointer;
-            font-size: 14px;
-            font-weight: 600;
-            touch-action: manipulation;
-            transition: all 0.2s;
-            min-width: 80px;
+            font-size: 12px;
+            font-weight: bold;
         }
-        
-        .btn:active {
-            transform: scale(0.95);
-        }
-        
-        .btn-play { 
-            background: #2d8a2f; 
-            color: white; 
-        }
-        
-        .btn-play:active { 
-            background: #1e5d20; 
-        }
-        
-        .btn-stop { 
-            background: #d32f2f; 
-            color: white; 
-        }
-        
-        .btn-stop:active { 
-            background: #9a1e1e; 
-        }
-        
-        .btn-reset { 
-            background: #f57c00; 
-            color: white; 
-        }
-        
-        .btn-reset:active { 
-            background: #e65100; 
-        }
-        
-        .btn-phase { 
-            background: #8e24aa; 
-            color: white; 
-        }
-        
-        .btn-phase:active { 
-            background: #6a1b9a; 
-        }
-        
-        .btn-preset { 
-            background: #1976d2; 
-            color: white; 
-        }
-        
-        .btn-preset:active { 
-            background: #1565c0; 
-        }
-        
-        .presets {
+        .btn-play { background: #2d8a2f; color: white; }
+        .btn-stop { background: #d32f2f; color: white; }
+        .btn-reset { background: #f57c00; color: white; }
+        .btn-phase { background: #8e24aa; color: white; }
+        .btn-save { background: #1976d2; color: white; }
+        .btn-save-audio { background: #9c27b0; color: white; }
+        .btn-save-csv { background: #607d8b; color: white; }
+        .btn-load { background: #388e3c; color: white; }
+        .grid-controls {
             display: flex;
-            gap: 8px;
+            gap: 10px;
             flex-wrap: wrap;
-            justify-content: center;
+            margin-bottom: 20px;
         }
-        
-        h1, h2, h3 {
+        .btn-grid { background: #795548; color: white; }
+        .btn-grid.active { background: #4caf50; }
+        .file-input {
+            display: none;
+        }
+        h1, h2 {
             margin-top: 0;
-            text-align: center;
         }
-        
-        h1 {
-            font-size: 20px;
-            margin-bottom: 15px;
-        }
-        
-        h2 {
-            font-size: 18px;
-            margin-bottom: 15px;
-        }
-        
-        h3 {
-            font-size: 16px;
-            margin-bottom: 10px;
-        }
-        
-        .audio-notice {
-            background: #fff3cd;
-            border: 1px solid #ffeaa7;
+        .info-text {
+            background: #e3f2fd;
+            padding: 15px;
             border-radius: 8px;
-            padding: 10px;
-            margin-bottom: 15px;
-            text-align: center;
-            font-size: 14px;
-            color: #856404;
+            margin-bottom: 20px;
+            border-left: 4px solid #2196f3;
+        }
+        .save-section {
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 15px;
+            margin: 10px 0;
+            background: #f9f9f9;
+        }
+        .save-section h3 {
+            margin: 0 0 10px 0;
+            color: #333;
         }
         
-        @media (max-width: 480px) {
-            .container {
-                padding: 0 5px;
+        /* Mobile Portrait */
+        @media (max-width: 768px) and (orientation: portrait) {
+            body {
+                padding: 10px;
             }
-            
+            .container {
+                gap: 15px;
+            }
+            .top-panel, .bottom-panel {
+                padding: 15px;
+            }
+            .grid {
+                grid-template-columns: repeat(21, 35px);
+                grid-template-rows: repeat(21, 17px);
+            }
+            .y-axis {
+                height: 360px;
+                width: 35px;
+                font-size: 8px;
+            }
+            .x-axis {
+                width: 720px;
+                margin-left: 45px;
+                font-size: 8px;
+            }
             .harmonic-control {
                 min-width: 55px;
-                padding: 6px 4px;
+                padding: 5px;
             }
-            
-            .slider-container {
-                width: 35px;
-                height: 100px;
-            }
-            
             .slider {
-                width: 100px;
-                height: 18px;
-                top: 41px;
-                left: -32px;
+                width: 25px;
+                height: 100px;
+                margin: 5px 0;
             }
-            
-            .chart-container {
-                height: 200px;
+            .value-display {
+                font-size: 11px;
             }
-            
+            .phase-display {
+                font-size: 11px;
+            }
+            .buttons {
+                justify-content: center;
+            }
             .btn {
-                padding: 10px 12px;
-                font-size: 12px;
-                min-width: 70px;
+                padding: 8px 12px;
+                font-size: 11px;
             }
-            
             h1 {
-                font-size: 18px;
+                font-size: 1.5em;
             }
-            
-            h2, h3 {
-                font-size: 16px;
+            h2 {
+                font-size: 1.3em;
             }
         }
-        
-        @media (max-height: 600px) and (orientation: landscape) {
-            .chart-container {
-                height: 150px;
+
+        /* Mobile Landscape */
+        @media (max-width: 950px) and (orientation: landscape) {
+            body {
+                padding: 5px;
             }
-            
-            .slider-container {
-                height: 80px;
+            .container {
+                flex-direction: row;
+                gap: 10px;
+                max-width: none;
             }
-            
+            .top-panel {
+                flex: 1;
+                padding: 10px;
+            }
+            .bottom-panel {
+                flex: 1;
+                padding: 10px;
+                max-height: 100vh;
+                overflow-y: auto;
+            }
+            .grid-container {
+                margin: 10px 0;
+            }
+            .grid {
+                grid-template-columns: repeat(21, 30px);
+                grid-template-rows: repeat(21, 15px);
+            }
+            .y-axis {
+                height: 320px;
+                width: 30px;
+                font-size: 7px;
+            }
+            .x-axis {
+                width: 620px;
+                margin-left: 40px;
+                font-size: 7px;
+            }
+            .controls {
+                flex-wrap: wrap;
+                gap: 5px;
+                justify-content: flex-start;
+            }
+            .harmonic-control {
+                min-width: 45px;
+                padding: 3px;
+            }
+            .harmonic-label {
+                font-size: 10px;
+                margin-bottom: 2px;
+            }
+            .freq-label {
+                font-size: 8px;
+                margin-bottom: 2px;
+            }
             .slider {
-                width: 80px;
-                top: 30px;
-                left: -22px;
+                width: 20px;
+                height: 80px;
+                margin: 3px 0;
+            }
+            .value-display {
+                font-size: 9px;
+                margin-top: 5px;
+            }
+            .phase-display {
+                font-size: 9px;
+                margin-top: 2px;
+            }
+            .buttons {
+                flex-wrap: wrap;
+                gap: 5px;
+                margin-bottom: 10px;
+            }
+            .btn {
+                padding: 6px 10px;
+                font-size: 10px;
+            }
+            .grid-controls {
+                margin-bottom: 10px;
+            }
+            h1 {
+                font-size: 1.3em;
+                margin-bottom: 10px;
+            }
+            h2 {
+                font-size: 1.1em;
+                margin-bottom: 10px;
+            }
+            .info-text {
+                padding: 10px;
+                margin-bottom: 10px;
+                font-size: 13px;
+            }
+        }
+
+        /* Tablet */
+        @media (min-width: 769px) and (max-width: 1024px) {
+            .grid {
+                grid-template-columns: repeat(21, 45px);
+                grid-template-rows: repeat(21, 22px);
+            }
+            .y-axis {
+                height: 460px;
+            }
+            .x-axis {
+                width: 920px;
+            }
+            .harmonic-control {
+                min-width: 65px;
+                padding: 7px;
+            }
+            .slider {
+                width: 32px;
+                height: 130px;
+                margin: 7px 0;
+            }
+        }
+
+        /* Very small screens */
+        @media (max-width: 480px) {
+            .grid {
+                grid-template-columns: repeat(21, 25px) !important;
+                grid-template-rows: repeat(21, 12px) !important;
+            }
+            .y-axis {
+                height: 260px !important;
+                width: 25px !important;
+                font-size: 6px !important;
+            }
+            .x-axis {
+                width: 520px !important;
+                margin-left: 35px !important;
+                font-size: 6px !important;
+            }
+            .controls {
+                justify-content: center;
+            }
+            .harmonic-control {
+                min-width: 40px !important;
+                padding: 2px !important;
+            }
+            .slider {
+                width: 18px !important;
+                height: 60px !important;
+                margin: 2px 0 !important;
+            }
+            .value-display {
+                font-size: 8px !important;
+            }
+            .phase-display {
+                font-size: 8px !important;
             }
         }
     </style>
@@ -305,285 +412,354 @@
 <body>
     <div class="container">
         <div class="top-panel">
-            <h1>Waveform - Three Cycles</h1>
-            <div class="chart-container">
-                <canvas id="waveformChart"></canvas>
+            <h1>Waveform Decomposer - Grid Interface</h1>
+            <div class="info-text">
+                <strong>Instructions:</strong> Click boxes in the grid! Each column is a time point (0-2.27ms), each row is amplitude (-1 to +1). Only one box per column can be selected.<br>
+                <strong>Red curve:</strong> Harmonic synthesis using the 10 harmonics analyzed from your discrete points. This is exactly what you hear when playing the tone.
+            </div>
+            
+            <div class="grid-container">
+                <div class="axis-labels">
+                    <div class="y-axis" id="yAxis"></div>
+                    <div style="position: relative;">
+                        <div class="grid" id="waveformGrid"></div>
+                        <canvas id="interpolationCanvas" class="interpolation-canvas"></canvas>
+                    </div>
+                </div>
+                <div class="x-axis" id="xAxis"></div>
             </div>
         </div>
         
         <div class="bottom-panel">
-            <h2>Harmonic Control Panel</h2>
-            
-            <div class="audio-notice" id="audioNotice" style="display: none;">
-                Tap "Play Tone" to enable audio on iOS
-            </div>
+            <h2>Harmonic Analysis Results</h2>
             
             <div class="buttons">
                 <button class="btn btn-play" onclick="playTone()">Play Tone</button>
                 <button class="btn btn-stop" onclick="stopTone()">Stop</button>
-                <button class="btn btn-reset" onclick="resetHarmonics()">Reset</button>
+                <button class="btn btn-reset" onclick="resetWaveform()">Reset</button>
                 <button class="btn btn-phase" onclick="scramblePhase()">Scramble Phase</button>
-                <button class="btn btn-phase" onclick="resetPhase()">Reset Phase</button>
+            </div>
+            
+            <div class="save-section">
+                <h3>Save Options</h3>
+                <div class="buttons">
+                    <button class="btn btn-save" onclick="saveWaveformData()">Save Waveform Data</button>
+                    <button class="btn btn-save-audio" onclick="saveAudioWAV()">Save Audio (WAV)</button>
+                    <button class="btn btn-save-csv" onclick="saveDiscreteWaveformCSV()">Save Discrete Points (CSV)</button>
+                    <button class="btn btn-load" onclick="document.getElementById('fileInput').click()">Load Waveform</button>
+                    <input type="file" id="fileInput" class="file-input" accept=".json" onchange="loadWaveform(event)">
+                </div>
+            </div>
+            
+            <div class="grid-controls">
+                <strong>Grid Resolution:</strong>
+                <button class="btn btn-grid active" onclick="setGridResolution(21)">Default (21×21)</button>
+                <button class="btn btn-grid" onclick="setGridResolution(41)">Fine (41×41)</button>
+                <button class="btn btn-grid" onclick="setGridResolution(81)">Extra Fine (81×81)</button>
             </div>
             
             <div class="controls" id="harmonicControls"></div>
-            
-            <h3>Waveform Presets:</h3>
-            <div class="presets">
-                <button class="btn btn-preset" onclick="setPreset('sine')">Sine</button>
-                <button class="btn btn-preset" onclick="setPreset('sawtooth')">Sawtooth</button>
-                <button class="btn btn-preset" onclick="setPreset('square')">Square</button>
-                <button class="btn btn-preset" onclick="setPreset('triangle')">Triangle</button>
-            </div>
         </div>
     </div>
 
     <script>
         // Global variables
         const fs = 44100;
-        const f0 = 440;
-        const duration = 0.5;
+        const f0 = 440; // 440 Hz for 2.2727ms period
+        const duration = 1.0;
         const numHarmonics = 10;
-        const minDb = -60;
-        const maxDb = 0;
+        const periodMs = 1000 / f0; // 2.2727ms for 440 Hz
         
+        let gridResolution = 21;
+        let waveformPoints = new Array(gridResolution).fill(0);
         let harmonicAmps = new Array(numHarmonics).fill(0);
         let harmonicPhases = new Array(numHarmonics).fill(0);
         let audioContext;
         let currentSource;
-        let chart;
-        let isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
-        let audioInitialized = false;
+        let selectedCells = new Array(gridResolution).fill(10); // Start at middle (amplitude 0)
+        let interpolatedSignal = []; // High-resolution interpolated signal
         
-        // Initialize with fundamental only
-        harmonicAmps[0] = 1.0;
-        
-        // Initialize audio context with iOS compatibility
+        // Initialize audio context
         function initAudio() {
-            return new Promise((resolve, reject) => {
-                if (!audioContext) {
-                    try {
-                        // Use webkitAudioContext for older iOS devices
-                        audioContext = new (window.AudioContext || window.webkitAudioContext)();
-                        console.log('AudioContext created, state:', audioContext.state);
-                    } catch (error) {
-                        console.error('Failed to create AudioContext:', error);
-                        reject(error);
-                        return;
+            if (!audioContext) {
+                audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            }
+        }
+        
+        // Create high-resolution synthesized signal using harmonic components
+        function createInterpolatedSignal() {
+            const samplesPerPeriod = Math.floor(fs * periodMs / 1000);
+            interpolatedSignal = new Array(samplesPerPeriod);
+            
+            // Generate synthesized signal using harmonic components with cosine
+            for (let i = 0; i < samplesPerPeriod; i++) {
+                const t = i / samplesPerPeriod; // 0 to 1 over one period
+                let sample = 0;
+                
+                // Sum all harmonics using cosine
+                for (let h = 0; h < numHarmonics; h++) {
+                    if (harmonicAmps[h] > 0) {
+                        const freq = h + 1; // Harmonic number (1st, 2nd, 3rd, etc.)
+                        const phaseRad = harmonicPhases[h] * Math.PI / 180; // Convert degrees to radians
+                        sample += harmonicAmps[h] * Math.cos(2 * Math.PI * freq * t + phaseRad);
                     }
                 }
                 
-                // Always try to resume on iOS, even if state seems running
-                if (audioContext.state === 'suspended' || isIOS) {
-                    console.log('Attempting to resume AudioContext...');
-                    audioContext.resume().then(() => {
-                        console.log('AudioContext resumed, state:', audioContext.state);
-                        audioInitialized = true;
-                        document.getElementById('audioNotice').style.display = 'none';
-                        resolve();
-                    }).catch((error) => {
-                        console.error('Failed to resume AudioContext:', error);
-                        reject(error);
-                    });
-                } else {
-                    audioInitialized = true;
-                    document.getElementById('audioNotice').style.display = 'none';
-                    resolve();
+                interpolatedSignal[i] = sample;
+            }
+            
+            // Normalize to prevent clipping (optional - keep signal within reasonable bounds)
+            const maxAmp = Math.max(...interpolatedSignal.map(Math.abs));
+            if (maxAmp > 1) {
+                for (let i = 0; i < interpolatedSignal.length; i++) {
+                    interpolatedSignal[i] /= maxAmp;
                 }
-            });
+            }
         }
         
-        // Generate waveform data for display
-        function generateWaveform() {
-            const cyclesDisplay = 3;
-            const samplesPerCycle = Math.floor(fs / f0);
-            const totalSamples = samplesPerCycle * cyclesDisplay;
-            const waveform = new Array(totalSamples).fill(0);
+        // Draw harmonic synthesis curve on canvas
+        function drawInterpolationCurve() {
+            const canvas = document.getElementById('interpolationCanvas');
+            const grid = document.getElementById('waveformGrid');
             
-            for (let i = 0; i < numHarmonics; i++) {
-                if (harmonicAmps[i] > 0) {
-                    const freq = f0 * (i + 1);
-                    const phaseRad = harmonicPhases[i] * Math.PI / 180;
-                    
-                    for (let j = 0; j < totalSamples; j++) {
-                        const t = j / fs;
-                        waveform[j] += harmonicAmps[i] * Math.sin(2 * Math.PI * freq * t + phaseRad);
+            // Set canvas size to match grid with 2:1 aspect ratio
+            const cellWidth = gridResolution <= 21 ? 50 : (gridResolution <= 41 ? 30 : 20);
+            const cellHeight = gridResolution <= 21 ? 25 : (gridResolution <= 41 ? 15 : 10);
+            const gap = 1;
+            
+            canvas.width = gridResolution * cellWidth + (gridResolution - 1) * gap;
+            canvas.height = gridResolution * cellHeight + (gridResolution - 1) * gap;
+            
+            const ctx = canvas.getContext('2d');
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            // Draw synthesized curve using harmonic components
+            ctx.strokeStyle = 'rgba(220, 20, 20, 0.8)'; // Dim red
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            
+            const samplesPerPeriod = Math.floor(fs * periodMs / 1000);
+            
+            for (let i = 0; i < samplesPerPeriod; i++) {
+                const t = (i / samplesPerPeriod); // 0 to 1
+                const amplitude = interpolatedSignal[i];
+                
+                // Convert to canvas coordinates (flipped y-axis: -1 at top, +1 at bottom)
+                const x = t * (canvas.width - gap);
+                const y = ((1 + amplitude) / 2) * (canvas.height - gap); // Flipped: +1 maps to bottom, -1 to top
+                
+                if (i === 0) {
+                    ctx.moveTo(x, y);
+                } else {
+                    ctx.lineTo(x, y);
+                }
+            }
+            
+            ctx.stroke();
+            
+            // Draw red dots at the synthesized curve values at discrete time points
+            ctx.fillStyle = 'rgba(220, 20, 20, 1.0)';
+            
+            for (let i = 0; i < waveformPoints.length; i++) {
+                const t = i / (waveformPoints.length - 1);
+                
+                // Calculate the synthesized amplitude at this time point using harmonics
+                let synthesizedAmplitude = 0;
+                for (let h = 0; h < numHarmonics; h++) {
+                    if (harmonicAmps[h] > 0) {
+                        const freq = h + 1;
+                        const phaseRad = harmonicPhases[h] * Math.PI / 180;
+                        synthesizedAmplitude += harmonicAmps[h] * Math.cos(2 * Math.PI * freq * t + phaseRad);
                     }
                 }
+                
+                // Normalize if needed (same as in createInterpolatedSignal)
+                const maxAmp = Math.max(...interpolatedSignal.map(Math.abs));
+                if (maxAmp > 1) {
+                    synthesizedAmplitude /= maxAmp;
+                }
+                
+                // Center the points in the grid cells
+                const cellCenterOffsetX = cellWidth / 2;
+                
+                const x = t * (canvas.width - gap) + (t === 0 ? cellCenterOffsetX : (t === 1 ? -cellCenterOffsetX : 0));
+                const y = ((1 + synthesizedAmplitude) / 2) * (canvas.height - gap); // Use synthesized value, flipped y-axis
+                
+                ctx.beginPath();
+                ctx.arc(x, y, 3, 0, 2 * Math.PI);
+                ctx.fill();
             }
             
-            // Normalize
-            const maxAmp = Math.max(...waveform.map(Math.abs));
-            if (maxAmp > 0) {
-                for (let i = 0; i < waveform.length; i++) {
-                    waveform[i] /= maxAmp;
+            // Add text label to indicate this is harmonic synthesis
+            ctx.fillStyle = 'rgba(220, 20, 20, 0.7)';
+            ctx.font = '12px Arial';
+            ctx.fillText('Harmonic Synthesis', 10, 20);
+        }
+        
+        // Create grid
+        function createGrid() {
+            const grid = document.getElementById('waveformGrid');
+            const yAxis = document.getElementById('yAxis');
+            const xAxis = document.getElementById('xAxis');
+            
+            // Clear existing content
+            grid.innerHTML = '';
+            yAxis.innerHTML = '';
+            xAxis.innerHTML = '';
+            
+            // Always create Y-axis labels for 21 points (amplitude: -1 to 1 from top to bottom)
+            for (let row = 0; row < 21; row++) {
+                const amplitude = -1 + (row / 20) * 2; // -1 to 1 in 21 steps (flipped)
+                const label = document.createElement('div');
+                label.className = 'y-label';
+                label.textContent = amplitude.toFixed(1);
+                yAxis.appendChild(label);
+            }
+            
+            // Create grid cells
+            for (let row = 0; row < gridResolution; row++) {
+                for (let col = 0; col < gridResolution; col++) {
+                    const cell = document.createElement('button');
+                    cell.className = 'grid-cell';
+                    cell.onclick = () => selectCell(row, col);
+                    cell.id = `cell-${row}-${col}`;
+                    grid.appendChild(cell);
                 }
             }
             
-            return waveform;
+            // Always create X-axis labels for 21 points (time: 0 to 2.2727ms)
+            for (let col = 0; col < 21; col++) {
+                const time = (col / 20) * periodMs; // 0 to 2.2727ms in 21 steps
+                const label = document.createElement('div');
+                label.className = 'x-label';
+                label.textContent = time.toFixed(2);
+                xAxis.appendChild(label);
+            }
+            
+            // Update grid display
+            updateGridDisplay();
+            
+            // Setup canvas for interpolation overlay
+            setTimeout(() => {
+                createInterpolatedSignal();
+                drawInterpolationCurve();
+            }, 100);
         }
         
-        // Generate audio buffer
+        // Select cell in grid
+        function selectCell(row, col) {
+            // Clear previous selection in this column
+            const oldRow = selectedCells[col];
+            if (oldRow !== -1) {
+                const oldCell = document.getElementById(`cell-${oldRow}-${col}`);
+                if (oldCell) oldCell.classList.remove('selected');
+            }
+            
+            // Select new cell
+            selectedCells[col] = row;
+            const newCell = document.getElementById(`cell-${row}-${col}`);
+            newCell.classList.add('selected');
+            
+            // Update waveform data (flip amplitude calculation for new y-axis)
+            const amplitude = -1 + (row / (gridResolution - 1)) * 2; // Convert row to amplitude (-1 to 1)
+            waveformPoints[col] = amplitude;
+            
+            // Analyze and update displays
+            analyzeWaveform();
+            updateHarmonicDisplays();
+            
+            // Update interpolated signal and curve
+            createInterpolatedSignal();
+            drawInterpolationCurve();
+        }
+        
+        // Update grid display
+        function updateGridDisplay() {
+            for (let col = 0; col < gridResolution; col++) {
+                // Clear all cells in column
+                for (let row = 0; row < gridResolution; row++) {
+                    const cell = document.getElementById(`cell-${row}-${col}`);
+                    if (cell) cell.classList.remove('selected');
+                }
+                
+                // Select the active cell in this column
+                const activeRow = selectedCells[col];
+                if (activeRow !== -1) {
+                    const cell = document.getElementById(`cell-${activeRow}-${col}`);
+                    if (cell) cell.classList.add('selected');
+                }
+            }
+        }
+        
+        // Fourier analysis
+        function analyzeWaveform() {
+            const N = waveformPoints.length;
+            harmonicAmps.fill(0);
+            harmonicPhases.fill(0);
+            
+            for (let k = 1; k <= numHarmonics; k++) {
+                let realPart = 0;
+                let imagPart = 0;
+                
+                for (let n = 0; n < N; n++) {
+                    const angle = -2 * Math.PI * k * n / N;
+                    realPart += waveformPoints[n] * Math.cos(angle);
+                    imagPart += waveformPoints[n] * Math.sin(angle);
+                }
+                
+                realPart *= 2/N;
+                imagPart *= 2/N;
+                
+                harmonicAmps[k-1] = Math.sqrt(realPart*realPart + imagPart*imagPart);
+                harmonicPhases[k-1] = Math.atan2(-imagPart, realPart) * 180/Math.PI + 180; // Changed to +180°
+                
+                if (harmonicPhases[k-1] < 0) harmonicPhases[k-1] += 360;
+            }
+        }
+        
+        // Generate audio buffer using harmonic synthesis
         function generateAudioBuffer() {
-            const bufferSize = Math.floor(fs * duration);
+            const bufferSize = fs; // 1 second
             const buffer = audioContext.createBuffer(1, bufferSize, fs);
             const data = buffer.getChannelData(0);
             
-            // Generate composite signal
-            for (let i = 0; i < numHarmonics; i++) {
-                if (harmonicAmps[i] > 0) {
-                    const freq = f0 * (i + 1);
-                    const phaseRad = harmonicPhases[i] * Math.PI / 180;
-                    
-                    for (let j = 0; j < bufferSize; j++) {
-                        const t = j / fs;
-                        data[j] += harmonicAmps[i] * Math.sin(2 * Math.PI * freq * t + phaseRad);
-                    }
+            const samplesPerCycle = interpolatedSignal.length;
+            const cyclesPerSecond = f0; // Use actual fundamental frequency
+            
+            // Use the harmonically synthesized signal for audio
+            for (let cycle = 0; cycle < cyclesPerSecond; cycle++) {
+                const cycleStartSample = cycle * samplesPerCycle;
+                
+                for (let i = 0; i < samplesPerCycle && (cycleStartSample + i) < bufferSize; i++) {
+                    // Use the same harmonic synthesis as the red curve
+                    data[cycleStartSample + i] = interpolatedSignal[i] * 0.3; // Volume control
                 }
             }
             
-            // Normalize
-            const maxAmp = Math.max(...data.map(Math.abs));
-            if (maxAmp > 0) {
-                for (let i = 0; i < bufferSize; i++) {
-                    data[i] = (data[i] / maxAmp) * 0.6; // Reduced volume for mobile
-                }
-            }
-            
-            // Apply fade in/out
-            const fadeSize = Math.floor(0.01 * fs);
+            // Apply fade in/out to prevent clicks
+            const fadeSize = Math.floor(0.01 * fs); // 10ms fade
             for (let i = 0; i < fadeSize; i++) {
-                data[i] *= i / fadeSize;
-                data[bufferSize - 1 - i] *= i / fadeSize;
+                const fadeValue = i / fadeSize;
+                data[i] *= fadeValue;
+                data[bufferSize - 1 - i] *= fadeValue;
             }
             
             return buffer;
         }
         
-        // Play tone with iOS compatibility
-        async function playTone() {
-            try {
-                console.log('Play tone clicked');
-                
-                // Show loading state
-                const playBtn = document.querySelector('.btn-play');
-                const originalText = playBtn.textContent;
-                playBtn.textContent = 'Loading...';
-                playBtn.disabled = true;
-                
-                await initAudio();
-                
-                if (!audioContext) {
-                    throw new Error('AudioContext not available');
-                }
-                
-                console.log('AudioContext state before play:', audioContext.state);
-                
-                // Force another resume attempt for iOS
-                if (audioContext.state !== 'running') {
-                    await audioContext.resume();
-                    console.log('AudioContext state after resume:', audioContext.state);
-                }
-                
-                // Small delay to ensure context is fully running
-                await new Promise(resolve => setTimeout(resolve, 100));
-                
-                await playAudio();
-                
-                playBtn.textContent = originalText;
-                playBtn.disabled = false;
-                
-            } catch (error) {
-                console.error('Play tone failed:', error);
-                
-                const playBtn = document.querySelector('.btn-play');
-                playBtn.textContent = 'Play Tone';
-                playBtn.disabled = false;
-                
-                // Show user-friendly error
-                if (isIOS) {
-                    alert('Audio failed to start. Please ensure your device is not on silent mode and try again.');
-                } else {
-                    alert('Audio playback failed: ' + error.message);
-                }
-            }
-        }
-        
-        async function playAudio() {
-            return new Promise((resolve, reject) => {
-                try {
-                    stopTone();
-                    
-                    const buffer = generateAudioBuffer();
-                    currentSource = audioContext.createBufferSource();
-                    currentSource.buffer = buffer;
-                    
-                    // Add gain node for volume control
-                    const gainNode = audioContext.createGain();
-                    gainNode.gain.setValueAtTime(0, audioContext.currentTime);
-                    gainNode.gain.linearRampToValueAtTime(0.3, audioContext.currentTime + 0.01); // Fade in
-                    gainNode.gain.setValueAtTime(0.3, audioContext.currentTime + duration - 0.01);
-                    gainNode.gain.linearRampToValueAtTime(0, audioContext.currentTime + duration); // Fade out
-                    
-                    currentSource.connect(gainNode);
-                    gainNode.connect(audioContext.destination);
-                    
-                    // Handle playback completion
-                    currentSource.onended = () => {
-                        console.log('Audio playback completed');
-                        currentSource = null;
-                        resolve();
-                    };
-                    
-                    currentSource.onerror = (error) => {
-                        console.error('Audio playback error:', error);
-                        currentSource = null;
-                        reject(error);
-                    };
-                    
-                    console.log('Starting audio playback...');
-                    currentSource.start(0);
-                    
-                    audioInitialized = true;
-                    document.getElementById('audioNotice').style.display = 'none';
-                    
-                } catch (error) {
-                    console.error('PlayAudio failed:', error);
-                    reject(error);
-                }
-            });
-        }
-        
-        // Stop tone
-        function stopTone() {
-            if (currentSource) {
-                try {
-                    currentSource.stop();
-                } catch (error) {
-                    // Ignore errors from stopping already stopped sources
-                }
-                currentSource = null;
-            }
-        }
-        
-        // Update displays
-        function updateDisplays() {
-            const waveform = generateWaveform();
-            const timeMs = waveform.map((_, i) => (i / fs) * 1000);
-            
-            chart.data.labels = timeMs;
-            chart.data.datasets[0].data = waveform;
-            chart.update('none');
-            
-            // Update value displays
+        // Update harmonic displays
+        function updateHarmonicDisplays() {
             for (let i = 0; i < numHarmonics; i++) {
+                const slider = document.getElementById(`slider-${i}`);
                 const valueEl = document.getElementById(`value-${i}`);
                 const phaseEl = document.getElementById(`phase-${i}`);
                 
                 if (harmonicAmps[i] > 0) {
                     const db = 20 * Math.log10(harmonicAmps[i]);
+                    slider.value = Math.max(-60, Math.min(0, db));
                     valueEl.innerHTML = `${db.toFixed(1)}dB<br>(${harmonicAmps[i].toFixed(2)})`;
                 } else {
+                    slider.value = -60;
                     valueEl.innerHTML = `-∞dB<br>(0.00)`;
                 }
                 
@@ -591,89 +767,316 @@
             }
         }
         
-        // Slider callback with touch optimization
-        function sliderChanged(harmonicIndex, value) {
-            const dbValue = parseFloat(value);
+        // Play tone
+        function playTone() {
+            initAudio();
+            stopTone();
             
-            if (dbValue <= minDb + 0.1) {
-                harmonicAmps[harmonicIndex] = 0;
-            } else {
-                harmonicAmps[harmonicIndex] = Math.pow(10, dbValue / 20);
-            }
-            
-            updateDisplays();
+            const buffer = generateAudioBuffer();
+            currentSource = audioContext.createBufferSource();
+            currentSource.buffer = buffer;
+            currentSource.connect(audioContext.destination);
+            currentSource.start();
         }
         
-        // Reset harmonics
-        function resetHarmonics() {
-            harmonicAmps.fill(0);
-            harmonicAmps[0] = 1.0;
-            harmonicPhases.fill(0);
-            
-            // Reset sliders
-            for (let i = 0; i < numHarmonics; i++) {
-                const slider = document.getElementById(`slider-${i}`);
-                if (i === 0) {
-                    slider.value = 0; // 0 dB for fundamental
-                } else {
-                    slider.value = minDb;
-                }
+        // Stop tone
+        function stopTone() {
+            if (currentSource) {
+                currentSource.stop();
+                currentSource = null;
             }
-            
-            updateDisplays();
+        }
+        
+        // Reset waveform
+        function resetWaveform() {
+            waveformPoints.fill(0);
+            selectedCells.fill(Math.floor(gridResolution/2)); // Middle row (amplitude 0)
+            harmonicAmps.fill(0);
+            harmonicPhases.fill(0);
+            updateGridDisplay();
+            updateHarmonicDisplays();
+            createInterpolatedSignal();
+            drawInterpolationCurve();
         }
         
         // Scramble phase
         function scramblePhase() {
             for (let i = 0; i < numHarmonics; i++) {
-                harmonicPhases[i] = Math.random() * 360;
-            }
-            updateDisplays();
-        }
-        
-        // Reset phase
-        function resetPhase() {
-            harmonicPhases.fill(0);
-            updateDisplays();
-        }
-        
-        // Set preset
-        function setPreset(type) {
-            harmonicAmps.fill(0);
-            harmonicPhases.fill(0);
-            
-            switch (type) {
-                case 'sine':
-                    harmonicAmps[0] = 1.0;
-                    break;
-                case 'sawtooth':
-                    for (let i = 0; i < numHarmonics; i++) {
-                        harmonicAmps[i] = 1 / (i + 1);
-                    }
-                    break;
-                case 'square':
-                    for (let i = 0; i < numHarmonics; i += 2) {
-                        harmonicAmps[i] = 1 / (i + 1);
-                    }
-                    break;
-                case 'triangle':
-                    for (let i = 0; i < numHarmonics; i += 2) {
-                        harmonicAmps[i] = 1 / Math.pow(i + 1, 2);
-                    }
-                    break;
-            }
-            
-            // Update sliders
-            for (let i = 0; i < numHarmonics; i++) {
-                const slider = document.getElementById(`slider-${i}`);
                 if (harmonicAmps[i] > 0) {
-                    slider.value = 20 * Math.log10(harmonicAmps[i]);
-                } else {
-                    slider.value = minDb;
+                    harmonicPhases[i] = Math.random() * 360;
                 }
             }
             
-            updateDisplays();
+            // Regenerate waveform from harmonics with new phases
+            regenerateWaveformFromHarmonics();
+            updateGridFromWaveform();
+            updateHarmonicDisplays();
+            createInterpolatedSignal();
+            drawInterpolationCurve();
+        }
+        
+        // Regenerate waveform from harmonics
+        function regenerateWaveformFromHarmonics() {
+            waveformPoints.fill(0);
+            
+            for (let i = 0; i < waveformPoints.length; i++) {
+                const t = i / waveformPoints.length;
+                
+                for (let h = 0; h < numHarmonics; h++) {
+                    if (harmonicAmps[h] > 0) {
+                        const freq = h + 1;
+                        const phaseRad = harmonicPhases[h] * Math.PI / 180;
+                        waveformPoints[i] += harmonicAmps[h] * Math.cos(2 * Math.PI * freq * t + phaseRad);
+                    }
+                }
+            }
+            
+            const maxAmp = Math.max(...waveformPoints.map(Math.abs));
+            if (maxAmp > 0) {
+                for (let i = 0; i < waveformPoints.length; i++) {
+                    waveformPoints[i] /= maxAmp;
+                }
+            }
+        }
+        
+        // Update grid from waveform data
+        function updateGridFromWaveform() {
+            for (let col = 0; col < gridResolution; col++) {
+                const amplitude = waveformPoints[col];
+                const row = Math.round((-1 - amplitude) / -2 * (gridResolution - 1)); // Flipped calculation
+                const clampedRow = Math.max(0, Math.min(gridResolution - 1, row));
+                selectedCells[col] = clampedRow;
+            }
+            updateGridDisplay();
+        }
+        
+        // Set grid resolution
+        function setGridResolution(resolution) {
+            document.querySelectorAll('.btn-grid').forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+            
+            gridResolution = resolution;
+            waveformPoints = new Array(resolution).fill(0);
+            selectedCells = new Array(resolution).fill(Math.floor(resolution/2));
+            
+            // Update grid styling for different resolutions with 2:1 aspect ratio
+            const grid = document.getElementById('waveformGrid');
+            const cellWidth = resolution <= 21 ? 50 : (resolution <= 41 ? 30 : 20);
+            const cellHeight = resolution <= 21 ? 25 : (resolution <= 41 ? 15 : 10);
+            grid.style.gridTemplateColumns = `repeat(${resolution}, ${cellWidth}px)`;
+            grid.style.gridTemplateRows = `repeat(${resolution}, ${cellHeight}px)`;
+            
+            createGrid();
+            analyzeWaveform();
+            updateHarmonicDisplays();
+            createInterpolatedSignal();
+            drawInterpolationCurve();
+        }
+        
+        // Helper function to show temporary feedback
+        function showButtonFeedback(button, text, color, duration = 2000) {
+            const originalText = button.textContent;
+            const originalColor = button.style.background;
+            button.textContent = text;
+            button.style.background = color;
+            setTimeout(() => {
+                button.textContent = originalText;
+                button.style.background = originalColor;
+            }, duration);
+        }
+        
+        // Helper function to download a file
+        function downloadFile(blob, filename) {
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = filename;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            setTimeout(() => URL.revokeObjectURL(url), 1000);
+        }
+        
+        // Save waveform data as JSON
+        function saveWaveformData() {
+            try {
+                const data = {
+                    waveformPoints: waveformPoints,
+                    selectedCells: selectedCells,
+                    gridResolution: gridResolution,
+                    harmonicAmps: harmonicAmps,
+                    harmonicPhases: harmonicPhases,
+                    interpolatedSignal: interpolatedSignal,
+                    sampleRate: fs,
+                    fundamentalFreq: f0,
+                    timestamp: new Date().toISOString()
+                };
+                
+                const jsonString = JSON.stringify(data, null, 2);
+                const blob = new Blob([jsonString], { type: 'application/json' });
+                const filename = `waveform_${new Date().toISOString().slice(0,19).replace(/:/g,'-')}.json`;
+                
+                downloadFile(blob, filename);
+                
+                const saveBtn = document.querySelector('.btn-save');
+                showButtonFeedback(saveBtn, 'Saved!', '#4caf50');
+                
+            } catch (error) {
+                console.error('Error saving waveform data:', error);
+                alert('Error saving waveform data. Please try again.');
+            }
+        }
+        
+        // Convert audio buffer to WAV format
+        function encodeWAV(buffer, sampleRate) {
+            const length = buffer.length;
+            const arrayBuffer = new ArrayBuffer(44 + length * 2);
+            const view = new DataView(arrayBuffer);
+            
+            // WAV header
+            const writeString = (offset, string) => {
+                for (let i = 0; i < string.length; i++) {
+                    view.setUint8(offset + i, string.charCodeAt(i));
+                }
+            };
+            
+            writeString(0, 'RIFF');
+            view.setUint32(4, 36 + length * 2, true);
+            writeString(8, 'WAVE');
+            writeString(12, 'fmt ');
+            view.setUint32(16, 16, true);
+            view.setUint16(20, 1, true);
+            view.setUint16(22, 1, true);
+            view.setUint32(24, sampleRate, true);
+            view.setUint32(28, sampleRate * 2, true);
+            view.setUint16(32, 2, true);
+            view.setUint16(34, 16, true);
+            writeString(36, 'data');
+            view.setUint32(40, length * 2, true);
+            
+            // Convert float samples to 16-bit PCM
+            const offset = 44;
+            for (let i = 0; i < length; i++) {
+                const sample = Math.max(-1, Math.min(1, buffer[i]));
+                view.setInt16(offset + i * 2, sample * 0x7FFF, true);
+            }
+            
+            return arrayBuffer;
+        }
+        
+        // Save audio as WAV file
+        function saveAudioWAV() {
+            try {
+                initAudio();
+                const audioBuffer = generateAudioBuffer();
+                const channelData = audioBuffer.getChannelData(0);
+                
+                const wavArrayBuffer = encodeWAV(channelData, fs);
+                const blob = new Blob([wavArrayBuffer], { type: 'audio/wav' });
+                const filename = `waveform_audio_${new Date().toISOString().slice(0,19).replace(/:/g,'-')}.wav`;
+                
+                downloadFile(blob, filename);
+                
+                const saveBtn = document.querySelector('.btn-save-audio');
+                showButtonFeedback(saveBtn, 'Audio Saved!', '#4caf50');
+                
+            } catch (error) {
+                console.error('Error saving audio:', error);
+                alert('Error saving audio file. Please try again.');
+            }
+        }
+        
+        // Save discrete waveform points as CSV
+        function saveDiscreteWaveformCSV() {
+            try {
+                let csvContent = 'Time_ms,Amplitude,Grid_Column,Grid_Row\n';
+                
+                for (let i = 0; i < waveformPoints.length; i++) {
+                    const time = (i / (waveformPoints.length - 1)) * periodMs;
+                    const amplitude = waveformPoints[i];
+                    const gridCol = i;
+                    const gridRow = selectedCells[i];
+                    
+                    csvContent += `${time.toFixed(6)},${amplitude.toFixed(6)},${gridCol},${gridRow}\n`;
+                }
+                
+                const blob = new Blob([csvContent], { type: 'text/csv' });
+                const filename = `waveform_discrete_${new Date().toISOString().slice(0,19).replace(/:/g,'-')}.csv`;
+                
+                downloadFile(blob, filename);
+                
+                const saveBtn = document.querySelector('.btn-save-csv');
+                showButtonFeedback(saveBtn, 'CSV Saved!', '#4caf50');
+                
+            } catch (error) {
+                console.error('Error saving CSV:', error);
+                alert('Error saving CSV file. Please try again.');
+            }
+        }
+        
+        // Load waveform from JSON file
+        function loadWaveform(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const data = JSON.parse(e.target.result);
+                    
+                    if (data.waveformPoints && data.selectedCells && data.gridResolution) {
+                        // First set the grid resolution
+                        gridResolution = data.gridResolution;
+                        
+                        // Update grid styling
+                        const grid = document.getElementById('waveformGrid');
+                        const cellWidth = gridResolution <= 21 ? 50 : (gridResolution <= 41 ? 30 : 20);
+                        const cellHeight = gridResolution <= 21 ? 25 : (gridResolution <= 41 ? 15 : 10);
+                        grid.style.gridTemplateColumns = `repeat(${gridResolution}, ${cellWidth}px)`;
+                        grid.style.gridTemplateRows = `repeat(${gridResolution}, ${cellHeight}px)`;
+                        
+                        // Then load the data
+                        waveformPoints = [...data.waveformPoints];
+                        selectedCells = [...data.selectedCells];
+                        harmonicAmps = data.harmonicAmps ? [...data.harmonicAmps] : new Array(numHarmonics).fill(0);
+                        harmonicPhases = data.harmonicPhases ? [...data.harmonicPhases] : new Array(numHarmonics).fill(0);
+                        
+                        // Load interpolated signal if available
+                        if (data.interpolatedSignal) {
+                            interpolatedSignal = [...data.interpolatedSignal];
+                        }
+                        
+                        // Update grid button
+                        document.querySelectorAll('.btn-grid').forEach(btn => btn.classList.remove('active'));
+                        const targetBtn = document.querySelector(`button[onclick*="${gridResolution}"]`);
+                        if (targetBtn) targetBtn.classList.add('active');
+                        
+                        // Recreate grid and update displays
+                        createGrid();
+                        updateHarmonicDisplays();
+                        
+                        // Recreate interpolated signal if not loaded
+                        if (!data.interpolatedSignal) {
+                            createInterpolatedSignal();
+                        }
+                        drawInterpolationCurve();
+                        
+                        // User feedback
+                        const loadBtn = document.querySelector('.btn-load');
+                        showButtonFeedback(loadBtn, 'Loaded!', '#4caf50');
+                        
+                    } else {
+                        alert('Error: Invalid file format - missing required data');
+                    }
+                } catch (error) {
+                    console.error('Error loading file:', error);
+                    alert('Error loading file: Invalid JSON format');
+                }
+            };
+            reader.readAsText(file);
+            
+            // Clear the file input
+            event.target.value = '';
         }
         
         // Initialize
@@ -685,17 +1088,11 @@
                 const controlDiv = document.createElement('div');
                 controlDiv.className = 'harmonic-control';
                 
-                const initialDb = (i === 0) ? 0 : minDb;
-                
                 controlDiv.innerHTML = `
                     <div class="harmonic-label">H${i + 1}</div>
                     <div class="freq-label">${Math.round(f0 * (i + 1))}Hz</div>
-                    <div class="slider-container">
-                        <input type="range" class="slider" id="slider-${i}" 
-                               min="${minDb}" max="${maxDb}" value="${initialDb}" step="0.1"
-                               oninput="sliderChanged(${i}, this.value)"
-                               ontouchstart="this.focus()" ontouchend="this.blur()">
-                    </div>
+                    <input type="range" class="slider" id="slider-${i}" 
+                           min="-60" max="0" value="-60" step="0.1">
                     <div class="value-display" id="value-${i}"></div>
                     <div class="phase-display" id="phase-${i}"></div>
                 `;
@@ -703,85 +1100,8 @@
                 controlsDiv.appendChild(controlDiv);
             }
             
-            // Initialize chart with mobile optimizations
-            const ctx = document.getElementById('waveformChart').getContext('2d');
-            Chart.defaults.font.size = 11;
-            
-            chart = new Chart(ctx, {
-                type: 'line',
-                data: {
-                    labels: [],
-                    datasets: [{
-                        label: 'Amplitude',
-                        data: [],
-                        borderColor: '#2196F3',
-                        borderWidth: 2,
-                        fill: false,
-                        pointRadius: 0,
-                        tension: 0
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    interaction: {
-                        intersect: false
-                    },
-                    scales: {
-                        x: {
-                            title: {
-                                display: true,
-                                text: 'Time (ms)',
-                                font: {
-                                    size: 12
-                                }
-                            },
-                            ticks: {
-                                maxTicksLimit: 6,
-                                font: {
-                                    size: 10
-                                },
-                                callback: function(value, index, values) {
-                                    return value.toFixed(1);
-                                }
-                            }
-                        },
-                        y: {
-                            title: {
-                                display: true,
-                                text: 'Amplitude',
-                                font: {
-                                    size: 12
-                                }
-                            },
-                            min: -1.5,
-                            max: 1.5,
-                            ticks: {
-                                font: {
-                                    size: 10
-                                }
-                            }
-                        }
-                    },
-                    plugins: {
-                        legend: {
-                            display: false
-                        }
-                    },
-                    animation: {
-                        duration: 0
-                    }
-                }
-            });
-            
-            updateDisplays();
-        });
-        
-        // Handle page visibility for audio cleanup
-        document.addEventListener('visibilitychange', function() {
-            if (document.visibilityState === 'hidden') {
-                stopTone();
-            }
+            createGrid();
+            resetWaveform();
         });
     </script>
 </body>
