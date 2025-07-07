@@ -1,0 +1,712 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Frequency Discrimination Threshold Tool</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #333;
+        }
+
+        .container {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            padding: 40px;
+            max-width: 900px;
+            width: 90%;
+            text-align: center;
+        }
+
+        h1 {
+            color: #2c3e50;
+            margin-bottom: 10px;
+            font-size: 2.5em;
+            font-weight: 700;
+        }
+
+        .subtitle {
+            color: #7f8c8d;
+            margin-bottom: 30px;
+            font-size: 1.1em;
+        }
+
+        .iteration-info {
+            background: #f8f9fa;
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 30px;
+            border-left: 5px solid #3498db;
+        }
+
+        .iteration-title {
+            font-size: 1.8em;
+            font-weight: 600;
+            color: #2c3e50;
+            margin-bottom: 10px;
+        }
+
+        .iteration-details {
+            color: #666;
+            font-size: 1.1em;
+            line-height: 1.6;
+        }
+
+        .tone-controls {
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+            margin: 30px 0;
+            flex-wrap: wrap;
+        }
+
+        .tone-button {
+            background: linear-gradient(45deg, #27ae60, #2ecc71);
+            color: white;
+            border: none;
+            padding: 20px 40px;
+            border-radius: 50px;
+            font-size: 1.2em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 5px 15px rgba(39, 174, 96, 0.3);
+            min-width: 200px;
+        }
+
+        .tone-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(39, 174, 96, 0.4);
+        }
+
+        .tone-button.active {
+            background: linear-gradient(45deg, #e74c3c, #c0392b);
+            box-shadow: 0 5px 15px rgba(231, 76, 60, 0.3);
+        }
+
+        .tone-button.active:hover {
+            box-shadow: 0 8px 25px rgba(231, 76, 60, 0.4);
+        }
+
+        .slider-container {
+            margin: 40px 0;
+            padding: 30px;
+            background: #f8f9fa;
+            border-radius: 15px;
+        }
+
+        .slider-title {
+            font-size: 1.3em;
+            font-weight: 600;
+            color: #2c3e50;
+            margin-bottom: 20px;
+        }
+
+        .frequency-display {
+            font-size: 1.5em;
+            font-weight: 700;
+            color: #3498db;
+            margin-bottom: 20px;
+        }
+
+        .slider {
+            width: 100%;
+            height: 8px;
+            border-radius: 5px;
+            background: #ddd;
+            outline: none;
+            opacity: 0.7;
+            transition: opacity 0.2s;
+            margin: 20px 0;
+        }
+
+        .slider:hover {
+            opacity: 1;
+        }
+
+        .slider::-webkit-slider-thumb {
+            appearance: none;
+            width: 25px;
+            height: 25px;
+            border-radius: 50%;
+            background: #3498db;
+            cursor: pointer;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
+        }
+
+        .slider::-moz-range-thumb {
+            width: 25px;
+            height: 25px;
+            border-radius: 50%;
+            background: #3498db;
+            cursor: pointer;
+            border: none;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
+        }
+
+        .ratio-markers {
+            position: relative;
+            margin-top: 15px;
+            height: 40px;
+        }
+
+        .marker {
+            position: absolute;
+            text-align: center;
+            font-size: 0.75em;
+            color: #3498db;
+            font-weight: 600;
+            transform: translateX(-50%);
+            line-height: 1.2;
+        }
+
+        .sensations {
+            background: #fff3cd;
+            border-radius: 15px;
+            padding: 25px;
+            margin: 30px 0;
+            border-left: 5px solid #ffc107;
+            text-align: left;
+        }
+
+        .sensations h3 {
+            color: #856404;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+
+        .sensation-item {
+            margin: 10px 0;
+            padding: 10px;
+            background: rgba(255, 255, 255, 0.7);
+            border-radius: 8px;
+        }
+
+        .threshold-controls {
+            background: #e8f5e8;
+            border-radius: 15px;
+            padding: 25px;
+            margin: 30px 0;
+        }
+
+        .threshold-controls h3 {
+            color: #2d5a3d;
+            margin-bottom: 20px;
+        }
+
+        .threshold-buttons {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            justify-content: center;
+            margin-bottom: 20px;
+        }
+
+        .threshold-button {
+            background: linear-gradient(45deg, #3498db, #2980b9);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 25px;
+            font-size: 0.9em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .threshold-button:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(52, 152, 219, 0.3);
+        }
+
+        .threshold-display {
+            margin: 20px 0;
+            padding: 15px;
+            background: white;
+            border-radius: 10px;
+            font-size: 0.9em;
+        }
+
+        .next-button {
+            background: linear-gradient(45deg, #e67e22, #d35400);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 50px;
+            font-size: 1.1em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 5px 15px rgba(230, 126, 34, 0.3);
+            margin: 20px 10px;
+        }
+
+        .next-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(230, 126, 34, 0.4);
+        }
+
+        .next-button:disabled {
+            background: #bdc3c7;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        .results {
+            background: #f8f9fa;
+            border-radius: 15px;
+            padding: 25px;
+            margin-top: 30px;
+            border-left: 5px solid #27ae60;
+            text-align: left;
+        }
+
+        .results h3 {
+            color: #27ae60;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+
+        .result-item {
+            margin: 15px 0;
+            padding: 15px;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+
+        .instructions {
+            background: #d1ecf1;
+            border-radius: 15px;
+            padding: 20px;
+            margin: 20px 0;
+            border-left: 5px solid #17a2b8;
+            text-align: left;
+        }
+
+        .instructions h3 {
+            color: #0c5460;
+            margin-bottom: 10px;
+        }
+
+        .instructions ol {
+            color: #0c5460;
+            margin-left: 20px;
+        }
+
+        @media (max-width: 600px) {
+            .container {
+                padding: 20px;
+            }
+            
+            .tone-controls {
+                flex-direction: column;
+                align-items: center;
+            }
+            
+            .threshold-buttons {
+                flex-direction: column;
+                align-items: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Frequency Discrimination Tool</h1>
+        <p class="subtitle">Explore auditory phenomena from unison to pitch separation</p>
+        
+        <div class="instructions">
+            <h3>Instructions:</h3>
+            <ol>
+                <li>Use the tone buttons to play reference and test tones individually or together</li>
+                <li>Adjust the frequency ratio slider to explore different intervals</li>
+                <li>Listen for the progression: Unison → Beating → Roughness (1 pitch) → Roughness (2 pitches) → Smooth (2 pitches)</li>
+                <li>Mark your thresholds for each sensation transition</li>
+                <li>Complete all three iterations (A3, A4, A5)</li>
+            </ol>
+        </div>
+        
+        <div id="test-screen">
+            <div class="iteration-info">
+                <div class="iteration-title" id="iteration-title">Iteration 1: A3 (220 Hz)</div>
+                <div class="iteration-details" id="iteration-details">Reference frequency: 220 Hz</div>
+            </div>
+            
+            <div class="tone-controls">
+                <button class="tone-button" id="refTone" onclick="toggleReferenceTone()">Reference Tone: OFF</button>
+                <button class="tone-button" id="testTone" onclick="toggleTestTone()">Test Tone: OFF</button>
+            </div>
+            
+            <div class="slider-container">
+                <div class="slider-title">Frequency Ratio Control</div>
+                <div class="frequency-display" id="frequency-display">Test: 220.0 Hz (Ratio: 1.000)</div>
+                <input type="range" min="0" max="50" value="0" class="slider" id="ratioSlider" oninput="updateFrequency()">
+                <div class="ratio-markers" id="ratio-markers">
+                    <!-- Markers will be positioned dynamically -->
+                </div>
+            </div>
+            
+            <div class="sensations">
+                <h3>Auditory Sensations to Identify:</h3>
+                <div class="sensation-item"><strong>1. Perfect Unison:</strong> Single tone, no beating or roughness</div>
+                <div class="sensation-item"><strong>2. Beating:</strong> Regular amplitude fluctuations, still perceived as one pitch</div>
+                <div class="sensation-item"><strong>3. Roughness (1 pitch):</strong> Harsh, rough sensation but only one pitch perceived</div>
+                <div class="sensation-item"><strong>4. Roughness (2 pitches):</strong> Rough sensation with two distinct pitches audible</div>
+                <div class="sensation-item"><strong>5. Smooth (2 pitches):</strong> Clean separation, two distinct smooth pitches</div>
+            </div>
+            
+            <div class="threshold-controls">
+                <h3>Mark Your Thresholds</h3>
+                <div class="threshold-buttons">
+                    <button class="threshold-button" onclick="setThreshold(1)">1→2: Unison to Beating</button>
+                    <button class="threshold-button" onclick="setThreshold(2)">2→3: Beating to Roughness (1P)</button>
+                    <button class="threshold-button" onclick="setThreshold(3)">3→4: Roughness 1P to 2P</button>
+                    <button class="threshold-button" onclick="setThreshold(4)">4→5: Roughness to Smooth</button>
+                </div>
+                <div class="threshold-display" id="threshold-display">
+                    <strong>Current Thresholds:</strong><br>
+                    1→2 (Beating): Not set<br>
+                    2→3 (Roughness 1P): Not set<br>
+                    3→4 (Pitch Discrimination): Not set<br>
+                    4→5 (Critical Bandwidth): Not set
+                </div>
+                <button class="next-button" id="nextButton" onclick="nextIteration()" disabled>Next Iteration</button>
+            </div>
+        </div>
+        
+        <div id="results-screen" style="display: none;">
+            <div class="results">
+                <h3>Complete Results</h3>
+                <div id="results-content"></div>
+                <button class="next-button" onclick="resetTest()">Start New Test</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Audio context and test state
+        let audioContext;
+        let currentIteration = 0;
+        let referenceOscillator = null;
+        let testOscillator = null;
+        let referenceGain = null;
+        let testGain = null;
+        let isRefPlaying = false;
+        let isTestPlaying = false;
+        
+        // Test configuration
+        const iterations = [
+            { name: "A3", frequency: 220, label: "A3 (220 Hz)" },
+            { name: "A4", frequency: 440, label: "A4 (440 Hz)" },
+            { name: "A5", frequency: 880, label: "A5 (880 Hz)" }
+        ];
+        
+        // Results storage
+        let allResults = [];
+        let currentThresholds = {
+            1: null, // Unison to Beating
+            2: null, // Beating to Roughness (1P)
+            3: null, // Roughness 1P to 2P (Pitch Discrimination)
+            4: null  // Roughness to Smooth (Critical Bandwidth)
+        };
+        
+        // Initialize audio context
+        function initAudio() {
+            if (!audioContext) {
+                audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            }
+        }
+        
+        function getCurrentRatio() {
+            const sliderValue = document.getElementById('ratioSlider').value;
+            // Convert linear slider (0-50) to log2 scale from 1.0 to 1.5
+            // log2(1.5/1.0) = log2(1.5) ≈ 0.585
+            const logMax = Math.log2(1.5);
+            const logValue = (sliderValue / 50) * logMax;
+            return Math.pow(2, logValue);
+        }
+        
+        function updateFrequency() {
+            const ratio = getCurrentRatio();
+            const baseFreq = iterations[currentIteration].frequency;
+            const testFreq = baseFreq * ratio;
+            
+            document.getElementById('frequency-display').textContent = 
+                `Test: ${testFreq.toFixed(1)} Hz (Ratio: ${ratio.toFixed(3)})`;
+            
+            // Update test tone frequency if playing
+            if (isTestPlaying && testOscillator) {
+                testOscillator.frequency.setValueAtTime(testFreq, audioContext.currentTime);
+            }
+        }
+        
+        function setupRatioMarkers() {
+            const markersContainer = document.getElementById('ratio-markers');
+            const intervals = [
+                { ratio: 1.0, label: "Unison<br>1:1" },
+                { ratio: 16/15, label: "Minor 2nd<br>16:15" },
+                { ratio: 9/8, label: "Major 2nd<br>9:8" },
+                { ratio: 6/5, label: "Minor 3rd<br>6:5" },
+                { ratio: 5/4, label: "Major 3rd<br>5:4" },
+                { ratio: 4/3, label: "Fourth<br>4:3" },
+                { ratio: 3/2, label: "Fifth<br>3:2" }
+            ];
+            
+            markersContainer.innerHTML = '';
+            
+            intervals.forEach(interval => {
+                // Convert ratio to slider position using inverse log scale
+                const logMax = Math.log2(1.5);
+                const logValue = Math.log2(interval.ratio);
+                const sliderPosition = (logValue / logMax) * 100; // Convert to percentage
+                
+                // Only show markers that are within our range (1.0 to 1.5)
+                if (interval.ratio >= 1.0 && interval.ratio <= 1.5) {
+                    const marker = document.createElement('div');
+                    marker.className = 'marker';
+                    marker.innerHTML = interval.label;
+                    marker.style.left = `${sliderPosition}%`;
+                    markersContainer.appendChild(marker);
+                }
+            });
+        }
+        
+        function toggleReferenceTone() {
+            initAudio();
+            
+            if (isRefPlaying) {
+                stopReferenceTone();
+            } else {
+                startReferenceTone();
+            }
+        }
+        
+        function startReferenceTone() {
+            if (referenceOscillator) stopReferenceTone();
+            
+            const frequency = iterations[currentIteration].frequency;
+            
+            referenceOscillator = audioContext.createOscillator();
+            referenceGain = audioContext.createGain();
+            
+            referenceOscillator.connect(referenceGain);
+            referenceGain.connect(audioContext.destination);
+            
+            referenceOscillator.frequency.setValueAtTime(frequency, audioContext.currentTime);
+            referenceOscillator.type = 'sine';
+            referenceGain.gain.setValueAtTime(0.3, audioContext.currentTime);
+            
+            referenceOscillator.start();
+            isRefPlaying = true;
+            
+            document.getElementById('refTone').textContent = 'Reference Tone: ON';
+            document.getElementById('refTone').classList.add('active');
+        }
+        
+        function stopReferenceTone() {
+            if (referenceOscillator) {
+                referenceOscillator.stop();
+                referenceOscillator = null;
+                referenceGain = null;
+            }
+            isRefPlaying = false;
+            
+            document.getElementById('refTone').textContent = 'Reference Tone: OFF';
+            document.getElementById('refTone').classList.remove('active');
+        }
+        
+        function toggleTestTone() {
+            initAudio();
+            
+            if (isTestPlaying) {
+                stopTestTone();
+            } else {
+                startTestTone();
+            }
+        }
+        
+        function startTestTone() {
+            if (testOscillator) stopTestTone();
+            
+            const ratio = getCurrentRatio();
+            const frequency = iterations[currentIteration].frequency * ratio;
+            
+            testOscillator = audioContext.createOscillator();
+            testGain = audioContext.createGain();
+            
+            testOscillator.connect(testGain);
+            testGain.connect(audioContext.destination);
+            
+            testOscillator.frequency.setValueAtTime(frequency, audioContext.currentTime);
+            testOscillator.type = 'sine';
+            testGain.gain.setValueAtTime(0.3, audioContext.currentTime);
+            
+            testOscillator.start();
+            isTestPlaying = true;
+            
+            document.getElementById('testTone').textContent = 'Test Tone: ON';
+            document.getElementById('testTone').classList.add('active');
+        }
+        
+        function stopTestTone() {
+            if (testOscillator) {
+                testOscillator.stop();
+                testOscillator = null;
+                testGain = null;
+            }
+            isTestPlaying = false;
+            
+            document.getElementById('testTone').textContent = 'Test Tone: OFF';
+            document.getElementById('testTone').classList.remove('active');
+        }
+        
+        function setThreshold(thresholdNumber) {
+            const ratio = getCurrentRatio();
+            currentThresholds[thresholdNumber] = ratio;
+            updateThresholdDisplay();
+            checkAllThresholds();
+        }
+        
+        function updateThresholdDisplay() {
+            const thresholdNames = {
+                1: "1→2 (Beating)",
+                2: "2→3 (Roughness 1P)",
+                3: "3→4 (Pitch Discrimination)",
+                4: "4→5 (Critical Bandwidth)"
+            };
+            
+            let displayText = "<strong>Current Thresholds:</strong><br>";
+            for (let i = 1; i <= 4; i++) {
+                const value = currentThresholds[i];
+                displayText += `${thresholdNames[i]}: ${value ? value.toFixed(3) : 'Not set'}<br>`;
+            }
+            
+            document.getElementById('threshold-display').innerHTML = displayText;
+        }
+        
+        function checkAllThresholds() {
+            const allSet = Object.values(currentThresholds).every(t => t !== null);
+            document.getElementById('nextButton').disabled = !allSet;
+        }
+        
+        function nextIteration() {
+            // Stop any playing tones
+            stopReferenceTone();
+            stopTestTone();
+            
+            // Store current iteration results
+            allResults.push({
+                iteration: currentIteration,
+                reference: iterations[currentIteration],
+                thresholds: { ...currentThresholds }
+            });
+            
+            // Move to next iteration
+            currentIteration++;
+            
+            if (currentIteration >= iterations.length) {
+                showResults();
+                return;
+            }
+            
+            // Reset for next iteration
+            currentThresholds = { 1: null, 2: null, 3: null, 4: null };
+            document.getElementById('ratioSlider').value = 0;
+            updateFrequency();
+            updateThresholdDisplay();
+            document.getElementById('nextButton').disabled = true;
+            
+            // Update UI
+            const iteration = iterations[currentIteration];
+            document.getElementById('iteration-title').textContent = 
+                `Iteration ${currentIteration + 1}: ${iteration.label}`;
+            document.getElementById('iteration-details').textContent = 
+                `Reference frequency: ${iteration.frequency} Hz`;
+        }
+        
+        function showResults() {
+            document.getElementById('test-screen').style.display = 'none';
+            document.getElementById('results-screen').style.display = 'block';
+            
+            let resultsHTML = '';
+            
+            allResults.forEach((result, index) => {
+                const ref = result.reference;
+                const t = result.thresholds;
+                
+                resultsHTML += `
+                    <div class="result-item">
+                        <h4>${ref.label} Results</h4>
+                        <p><strong>Beating Threshold:</strong> ${t[1].toFixed(3)} (${(ref.frequency * t[1]).toFixed(1)} Hz)</p>
+                        <p><strong>Roughness (1P) Threshold:</strong> ${t[2].toFixed(3)} (${(ref.frequency * t[2]).toFixed(1)} Hz)</p>
+                        <p><strong>Pitch Discrimination Interval:</strong> ${t[3].toFixed(3)} (${(ref.frequency * t[3]).toFixed(1)} Hz)</p>
+                        <p><strong>Critical Bandwidth:</strong> ${t[4].toFixed(3)} (${(ref.frequency * t[4]).toFixed(1)} Hz)</p>
+                        <p><em>Frequency difference at critical bandwidth: ${(ref.frequency * (t[4] - 1)).toFixed(1)} Hz</em></p>
+                    </div>
+                `;
+            });
+            
+            // Add summary analysis
+            resultsHTML += `
+                <div class="result-item">
+                    <h4>Summary Analysis</h4>
+                    <p><strong>Pitch Discrimination Intervals:</strong></p>
+                    ${allResults.map(r => `• ${r.reference.name}: ${r.thresholds[3].toFixed(3)} ratio`).join('<br>')}
+                    <p><strong>Critical Bandwidths:</strong></p>
+                    ${allResults.map(r => `• ${r.reference.name}: ${(r.reference.frequency * (r.thresholds[4] - 1)).toFixed(1)} Hz`).join('<br>')}
+                </div>
+            `;
+            
+            document.getElementById('results-content').innerHTML = resultsHTML;
+            
+            // Log to console for research
+            console.log('Frequency Discrimination Results:', allResults);
+        }
+        
+        function resetTest() {
+            // Reset all state
+            stopReferenceTone();
+            stopTestTone();
+            currentIteration = 0;
+            allResults = [];
+            currentThresholds = { 1: null, 2: null, 3: null, 4: null };
+            
+            // Reset UI
+            document.getElementById('test-screen').style.display = 'block';
+            document.getElementById('results-screen').style.display = 'none';
+            document.getElementById('ratioSlider').value = 0;
+            updateFrequency();
+            updateThresholdDisplay();
+            setupRatioMarkers();
+            document.getElementById('nextButton').disabled = true;
+            
+            const iteration = iterations[currentIteration];
+            document.getElementById('iteration-title').textContent = 
+                `Iteration ${currentIteration + 1}: ${iteration.label}`;
+            document.getElementById('iteration-details').textContent = 
+                `Reference frequency: ${iteration.frequency} Hz`;
+        }
+        
+        // Initialize display
+        updateFrequency();
+        updateThresholdDisplay();
+        setupRatioMarkers();
+    </script>
+</body>
+</html>

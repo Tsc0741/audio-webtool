@@ -1,0 +1,695 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Complex Tone Interval Consonance Tool</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #2c3e50 0%, #3498db 100%);
+            min-height: 100vh;
+            color: #333;
+            padding: 20px;
+        }
+
+        .container {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            padding: 30px;
+            max-width: 1200px;
+            margin: 0 auto;
+            text-align: center;
+        }
+
+        h1 {
+            color: #2c3e50;
+            margin-bottom: 10px;
+            font-size: 2.5em;
+            font-weight: 700;
+        }
+
+        .subtitle {
+            color: #7f8c8d;
+            margin-bottom: 30px;
+            font-size: 1.1em;
+        }
+
+        .controls-section {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .control-group {
+            background: #f8f9fa;
+            border-radius: 15px;
+            padding: 20px;
+            border-left: 5px solid #3498db;
+        }
+
+        .control-title {
+            font-size: 1.2em;
+            font-weight: 600;
+            color: #2c3e50;
+            margin-bottom: 15px;
+        }
+
+        .button-group {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            justify-content: center;
+        }
+
+        .control-button {
+            background: linear-gradient(45deg, #3498db, #2980b9);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 25px;
+            font-size: 0.9em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 3px 10px rgba(52, 152, 219, 0.3);
+        }
+
+        .control-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(52, 152, 219, 0.4);
+        }
+
+        .control-button.active {
+            background: linear-gradient(45deg, #e74c3c, #c0392b);
+            box-shadow: 0 3px 10px rgba(231, 76, 60, 0.3);
+        }
+
+        .interval-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+        }
+
+        .interval-button {
+            background: linear-gradient(45deg, #27ae60, #2ecc71);
+            color: white;
+            border: none;
+            padding: 15px;
+            border-radius: 15px;
+            font-size: 0.9em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 3px 10px rgba(39, 174, 96, 0.3);
+        }
+
+        .interval-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(39, 174, 96, 0.4);
+        }
+
+        .interval-button.active {
+            background: linear-gradient(45deg, #f39c12, #e67e22);
+            box-shadow: 0 3px 10px rgba(243, 156, 18, 0.3);
+        }
+
+        .play-section {
+            background: #e8f5e8;
+            border-radius: 15px;
+            padding: 25px;
+            margin: 20px 0;
+            border-left: 5px solid #27ae60;
+        }
+
+        .play-button {
+            background: linear-gradient(45deg, #e74c3c, #c0392b);
+            color: white;
+            border: none;
+            padding: 20px 40px;
+            border-radius: 50px;
+            font-size: 1.3em;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 5px 15px rgba(231, 76, 60, 0.3);
+            margin: 10px;
+        }
+
+        .play-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(231, 76, 60, 0.4);
+        }
+
+        .play-button:disabled {
+            background: #bdc3c7;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        .visualization-section {
+            background: #f8f9fa;
+            border-radius: 15px;
+            padding: 25px;
+            margin: 20px 0;
+            border-left: 5px solid #9b59b6;
+        }
+
+        .chart-container {
+            width: 100%;
+            height: 400px;
+            background: white;
+            border-radius: 10px;
+            border: 2px solid #ecf0f1;
+            margin: 20px 0;
+            position: relative;
+        }
+
+        .consonance-section {
+            background: #fff3cd;
+            border-radius: 15px;
+            padding: 25px;
+            margin: 20px 0;
+            border-left: 5px solid #ffc107;
+        }
+
+        .consonance-buttons {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            flex-wrap: wrap;
+            margin: 20px 0;
+        }
+
+        .consonance-button {
+            background: linear-gradient(45deg, #6c5ce7, #5f3dc4);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 25px;
+            font-size: 1.1em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 3px 10px rgba(108, 92, 231, 0.3);
+        }
+
+        .consonance-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(108, 92, 231, 0.4);
+        }
+
+        .consonance-button.active {
+            background: linear-gradient(45deg, #fd79a8, #e84393);
+            box-shadow: 0 3px 10px rgba(253, 121, 168, 0.3);
+        }
+
+        .results-section {
+            background: #e8f5e8;
+            border-radius: 15px;
+            padding: 25px;
+            margin: 20px 0;
+            border-left: 5px solid #27ae60;
+            text-align: left;
+        }
+
+        .result-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px;
+            margin: 5px 0;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+
+        .current-info {
+            background: #d1ecf1;
+            border-radius: 10px;
+            padding: 15px;
+            margin: 15px 0;
+            border-left: 5px solid #17a2b8;
+        }
+
+        .info-text {
+            font-size: 1.1em;
+            font-weight: 600;
+            color: #0c5460;
+        }
+
+        .progress-info {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 15px;
+            margin: 15px 0;
+            font-weight: 600;
+            color: #2c3e50;
+        }
+
+        @media (max-width: 768px) {
+            .controls-section {
+                grid-template-columns: 1fr;
+            }
+            
+            .interval-grid {
+                grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            }
+            
+            .consonance-buttons {
+                flex-direction: column;
+                align-items: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Complex Tone Interval Tool</h1>
+        <p class="subtitle">Explore consonance and dissonance with synthesized instruments</p>
+        
+        <div class="controls-section">
+            <div class="control-group">
+                <div class="control-title">Instrument</div>
+                <div class="button-group">
+                    <button class="control-button active" onclick="selectInstrument('violin')">Violin</button>
+                    <button class="control-button" onclick="selectInstrument('flute')">Flute</button>
+                    <button class="control-button" onclick="selectInstrument('trumpet')">Trumpet</button>
+                </div>
+            </div>
+            
+            <div class="control-group">
+                <div class="control-title">Reference Note</div>
+                <div class="button-group">
+                    <button class="control-button active" onclick="selectReference('C4')">C4 (264 Hz)</button>
+                    <button class="control-button" onclick="selectReference('E4')">E4 (330 Hz)</button>
+                    <button class="control-button" onclick="selectReference('A4')">A4 (440 Hz)</button>
+                </div>
+            </div>
+        </div>
+        
+        <div class="control-group">
+            <div class="control-title">Select Musical Interval</div>
+            <div class="interval-grid">
+                <button class="interval-button active" onclick="selectInterval('unison')">Unison (1:1)</button>
+                <button class="interval-button" onclick="selectInterval('minor2')">Minor 2nd (16:15)</button>
+                <button class="interval-button" onclick="selectInterval('major2')">Major 2nd (9:8)</button>
+                <button class="interval-button" onclick="selectInterval('minor3')">Minor 3rd (6:5)</button>
+                <button class="interval-button" onclick="selectInterval('major3')">Major 3rd (5:4)</button>
+                <button class="interval-button" onclick="selectInterval('fourth')">Fourth (4:3)</button>
+                <button class="interval-button" onclick="selectInterval('fifth')">Fifth (3:2)</button>
+                <button class="interval-button" onclick="selectInterval('minor6')">Minor 6th (8:5)</button>
+                <button class="interval-button" onclick="selectInterval('major6')">Major 6th (5:3)</button>
+                <button class="interval-button" onclick="selectInterval('minor7')">Minor 7th (9:5)</button>
+                <button class="interval-button" onclick="selectInterval('major7')">Major 7th (15:8)</button>
+                <button class="interval-button" onclick="selectInterval('octave')">Octave (2:1)</button>
+            </div>
+        </div>
+        
+        <div class="current-info">
+            <div class="info-text" id="current-info">
+                Current: Violin, C4 (264 Hz), Unison (264 Hz)
+            </div>
+        </div>
+        
+        <div class="play-section">
+            <div class="control-title">Audio Playback</div>
+            <p style="margin-bottom: 15px;">Sequence: 0.5s reference → 0.5s interval → 1s both together</p>
+            <button class="play-button" onclick="playSequence()" id="playButton">▶ Play Sequence</button>
+        </div>
+        
+        <div class="visualization-section">
+            <div class="control-title">Harmonic Spectrum Visualization</div>
+            <div class="chart-container">
+                <canvas id="harmonicChart" width="800" height="400"></canvas>
+            </div>
+        </div>
+        
+        <div class="consonance-section">
+            <div class="control-title">Rate the Consonance</div>
+            <div class="consonance-buttons">
+                <button class="consonance-button" onclick="rateConsonance('perfect')">Perfect Consonance</button>
+                <button class="consonance-button" onclick="rateConsonance('imperfect')">Imperfect Consonance</button>
+                <button class="consonance-button" onclick="rateConsonance('dissonance')">Dissonance</button>
+            </div>
+        </div>
+        
+        <div class="progress-info" id="progress-info">
+            Progress: 0/12 intervals rated
+        </div>
+        
+        <div class="results-section" id="results-section" style="display: none;">
+            <h3>Your Consonance Ratings</h3>
+            <div id="results-content"></div>
+            <button class="control-button" onclick="resetTest()" style="margin-top: 20px;">Start New Test</button>
+        </div>
+    </div>
+
+    <script>
+        // Audio context and state
+        let audioContext;
+        let currentInstrument = 'violin';
+        let currentReference = 'C4';
+        let currentInterval = 'unison';
+        let ratings = {};
+        let isPlaying = false;
+        
+        // Instrument harmonic profiles (amplitudes in dB)
+        const instruments = {
+            violin: [0, -10, -40, -15, -50, -30, -60, -30, -60, -40],
+            flute: [0, -12, -12, -12, -24, -24, -40, -45, -50, -55],
+            trumpet: [0, -8, -9, -8, -6, -10, -20, -30, -40, -50]
+        };
+        
+        // Reference frequencies
+        const references = {
+            C4: 264,
+            E4: 330,
+            A4: 440
+        };
+        
+        // Musical intervals (frequency ratios)
+        const intervals = {
+            unison: { ratio: 1/1, name: "Unison" },
+            minor2: { ratio: 16/15, name: "Minor 2nd" },
+            major2: { ratio: 9/8, name: "Major 2nd" },
+            minor3: { ratio: 6/5, name: "Minor 3rd" },
+            major3: { ratio: 5/4, name: "Major 3rd" },
+            fourth: { ratio: 4/3, name: "Fourth" },
+            fifth: { ratio: 3/2, name: "Fifth" },
+            minor6: { ratio: 8/5, name: "Minor 6th" },
+            major6: { ratio: 5/3, name: "Major 6th" },
+            minor7: { ratio: 9/5, name: "Minor 7th" },
+            major7: { ratio: 15/8, name: "Major 7th" },
+            octave: { ratio: 2/1, name: "Octave" }
+        };
+        
+        function initAudio() {
+            if (!audioContext) {
+                audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            }
+        }
+        
+        function selectInstrument(instrument) {
+            currentInstrument = instrument;
+            updateActiveButton('.control-group:first-child .control-button', instrument);
+            updateCurrentInfo();
+            updateVisualization();
+        }
+        
+        function selectReference(reference) {
+            currentReference = reference;
+            updateActiveButton('.control-group:nth-child(2) .control-button', reference);
+            updateCurrentInfo();
+            updateVisualization();
+        }
+        
+        function selectInterval(interval) {
+            currentInterval = interval;
+            updateActiveIntervalButton(interval);
+            updateCurrentInfo();
+            updateVisualization();
+        }
+        
+        function updateActiveIntervalButton(activeInterval) {
+            document.querySelectorAll('.interval-button').forEach(btn => {
+                btn.classList.remove('active');
+                if (btn.getAttribute('onclick').includes(activeInterval)) {
+                    btn.classList.add('active');
+                }
+            });
+        }
+        
+        function updateActiveButton(selector, activeValue) {
+            document.querySelectorAll(selector).forEach(btn => {
+                btn.classList.remove('active');
+                if (btn.textContent.toLowerCase().includes(activeValue.toLowerCase())) {
+                    btn.classList.add('active');
+                }
+            });
+        }
+        
+        function updateCurrentInfo() {
+            const refFreq = references[currentReference];
+            const intervalRatio = intervals[currentInterval].ratio;
+            const intervalFreq = refFreq * intervalRatio;
+            
+            document.getElementById('current-info').textContent = 
+                `Current: ${currentInstrument.charAt(0).toUpperCase() + currentInstrument.slice(1)}, ` +
+                `${currentReference} (${refFreq} Hz), ${intervals[currentInterval].name} (${intervalFreq.toFixed(1)} Hz)`;
+        }
+        
+        function createComplexTone(frequency, duration) {
+            const harmonicAmplitudes = instruments[currentInstrument];
+            const gainNode = audioContext.createGain();
+            gainNode.connect(audioContext.destination);
+            
+            // Create oscillators for each harmonic
+            const oscillators = [];
+            for (let i = 0; i < harmonicAmplitudes.length; i++) {
+                const harmonic = i + 1;
+                const harmonicFreq = frequency * harmonic;
+                
+                // Convert dB to linear amplitude
+                const amplitudeDB = harmonicAmplitudes[i];
+                const amplitude = Math.pow(10, amplitudeDB / 20) * 0.1; // Scale down overall volume
+                
+                if (amplitude > 0.001) { // Only create audible harmonics
+                    const oscillator = audioContext.createOscillator();
+                    const harmonicGain = audioContext.createGain();
+                    
+                    oscillator.connect(harmonicGain);
+                    harmonicGain.connect(gainNode);
+                    
+                    oscillator.frequency.setValueAtTime(harmonicFreq, audioContext.currentTime);
+                    oscillator.type = 'sine';
+                    harmonicGain.gain.setValueAtTime(amplitude, audioContext.currentTime);
+                    
+                    oscillators.push(oscillator);
+                }
+            }
+            
+            // Envelope
+            const startTime = audioContext.currentTime;
+            gainNode.gain.setValueAtTime(0, startTime);
+            gainNode.gain.linearRampToValueAtTime(1, startTime + 0.05);
+            gainNode.gain.setValueAtTime(1, startTime + duration - 0.05);
+            gainNode.gain.linearRampToValueAtTime(0, startTime + duration);
+            
+            // Start all oscillators
+            oscillators.forEach(osc => {
+                osc.start(startTime);
+                osc.stop(startTime + duration);
+            });
+            
+            return { gainNode, oscillators, duration };
+        }
+        
+        async function playSequence() {
+            if (isPlaying) return;
+            
+            initAudio();
+            isPlaying = true;
+            document.getElementById('playButton').disabled = true;
+            document.getElementById('playButton').textContent = 'Playing...';
+            
+            const refFreq = references[currentReference];
+            const intervalFreq = refFreq * intervals[currentInterval].ratio;
+            
+            // Play reference tone (0.5s)
+            createComplexTone(refFreq, 0.5);
+            
+            // Wait 0.5s, then play interval tone (0.5s)
+            setTimeout(() => {
+                createComplexTone(intervalFreq, 0.5);
+            }, 500);
+            
+            // Wait 1s, then play both together (1s)
+            setTimeout(() => {
+                createComplexTone(refFreq, 1.0);
+                createComplexTone(intervalFreq, 1.0);
+            }, 1000);
+            
+            // Reset button after sequence
+            setTimeout(() => {
+                isPlaying = false;
+                document.getElementById('playButton').disabled = false;
+                document.getElementById('playButton').textContent = '▶ Play Sequence';
+            }, 2000);
+        }
+        
+        function updateVisualization() {
+            const canvas = document.getElementById('harmonicChart');
+            const ctx = canvas.getContext('2d');
+            
+            // Clear canvas
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            const refFreq = references[currentReference];
+            const intervalFreq = refFreq * intervals[currentInterval].ratio;
+            const harmonicAmplitudes = instruments[currentInstrument];
+            
+            // Setup chart dimensions
+            const margin = 50;
+            const chartWidth = canvas.width - 2 * margin;
+            const chartHeight = canvas.height - 2 * margin;
+            const maxFreq = Math.max(refFreq, intervalFreq) * 10; // Show up to 10th harmonic
+            const minDB = -70;
+            const maxDB = 5;
+            
+            // Draw axes
+            ctx.strokeStyle = '#333';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.moveTo(margin, margin);
+            ctx.lineTo(margin, margin + chartHeight);
+            ctx.lineTo(margin + chartWidth, margin + chartHeight);
+            ctx.stroke();
+            
+            // Draw frequency labels (x-axis)
+            ctx.fillStyle = '#333';
+            ctx.font = '12px Arial';
+            ctx.textAlign = 'center';
+            for (let i = 0; i <= 10; i++) {
+                const freq = (maxFreq / 10) * i;
+                const x = margin + (chartWidth / 10) * i;
+                if (i % 2 === 0) {
+                    ctx.fillText(Math.round(freq) + ' Hz', x, canvas.height - 10);
+                }
+            }
+            
+            // Draw amplitude labels (y-axis)
+            ctx.textAlign = 'right';
+            for (let db = maxDB; db >= minDB; db -= 10) {
+                const y = margin + ((maxDB - db) / (maxDB - minDB)) * chartHeight;
+                ctx.fillText(db + ' dB', margin - 10, y + 4);
+            }
+            
+            // Draw harmonics for reference frequency
+            ctx.fillStyle = '#3498db';
+            for (let i = 0; i < harmonicAmplitudes.length; i++) {
+                const harmonic = i + 1;
+                const freq = refFreq * harmonic;
+                const amplitude = harmonicAmplitudes[i];
+                
+                if (freq <= maxFreq) {
+                    const x = margin + (freq / maxFreq) * chartWidth;
+                    const y = margin + ((maxDB - amplitude) / (maxDB - minDB)) * chartHeight;
+                    const height = ((amplitude - minDB) / (maxDB - minDB)) * chartHeight;
+                    
+                    ctx.fillRect(x - 3, y, 6, height);
+                }
+            }
+            
+            // Draw harmonics for interval frequency (different color)
+            ctx.fillStyle = '#e74c3c';
+            for (let i = 0; i < harmonicAmplitudes.length; i++) {
+                const harmonic = i + 1;
+                const freq = intervalFreq * harmonic;
+                const amplitude = harmonicAmplitudes[i];
+                
+                if (freq <= maxFreq) {
+                    const x = margin + (freq / maxFreq) * chartWidth;
+                    const y = margin + ((maxDB - amplitude) / (maxDB - minDB)) * chartHeight;
+                    const height = ((amplitude - minDB) / (maxDB - minDB)) * chartHeight;
+                    
+                    ctx.fillRect(x - 3, y, 6, height);
+                }
+            }
+            
+            // Legend (moved to upper right)
+            const legendX = canvas.width - margin - 120;
+            const legendY = margin + 20;
+            
+            ctx.fillStyle = '#3498db';
+            ctx.fillRect(legendX, legendY, 15, 15);
+            ctx.fillStyle = '#333';
+            ctx.font = '14px Arial';
+            ctx.textAlign = 'left';
+            ctx.fillText('Reference', legendX + 20, legendY + 12);
+            
+            ctx.fillStyle = '#e74c3c';
+            ctx.fillRect(legendX, legendY + 20, 15, 15);
+            ctx.fillStyle = '#333';
+            ctx.fillText('Interval', legendX + 20, legendY + 32);
+        }
+        
+        function rateConsonance(rating) {
+            ratings[currentInterval] = rating;
+            updateProgress();
+            
+            // Auto-advance to next unrated interval
+            setTimeout(() => {
+                const unratedIntervals = Object.keys(intervals).filter(interval => !ratings[interval]);
+                if (unratedIntervals.length > 0) {
+                    selectInterval(unratedIntervals[0]);
+                } else {
+                    showResults();
+                }
+            }, 500);
+        }
+        
+        function updateProgress() {
+            const totalIntervals = Object.keys(intervals).length;
+            const ratedIntervals = Object.keys(ratings).length;
+            document.getElementById('progress-info').textContent = 
+                `Progress: ${ratedIntervals}/${totalIntervals} intervals rated`;
+        }
+        
+        function showResults() {
+            const resultsSection = document.getElementById('results-section');
+            const resultsContent = document.getElementById('results-content');
+            
+            let resultsHTML = '';
+            Object.keys(intervals).forEach(intervalKey => {
+                const interval = intervals[intervalKey];
+                const rating = ratings[intervalKey] || 'Not rated';
+                const ratingColor = rating === 'perfect' ? '#27ae60' : 
+                                  rating === 'imperfect' ? '#f39c12' : 
+                                  rating === 'dissonance' ? '#e74c3c' : '#95a5a6';
+                
+                resultsHTML += `
+                    <div class="result-item">
+                        <span><strong>${interval.name}</strong> (${interval.ratio.toFixed(3)})</span>
+                        <span style="color: ${ratingColor}; font-weight: bold;">${rating}</span>
+                    </div>
+                `;
+            });
+            
+            resultsContent.innerHTML = resultsHTML;
+            resultsSection.style.display = 'block';
+            
+            // Log results for research
+            console.log('Consonance Ratings:', {
+                instrument: currentInstrument,
+                reference: currentReference,
+                ratings: ratings
+            });
+        }
+        
+        function resetTest() {
+            ratings = {};
+            currentInterval = 'unison';
+            selectInterval('unison');
+            updateProgress();
+            document.getElementById('results-section').style.display = 'none';
+        }
+        
+        // Initialize
+        updateCurrentInfo();
+        updateVisualization();
+        updateProgress();
+    </script>
+</body>
+</html>
