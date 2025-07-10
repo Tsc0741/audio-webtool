@@ -284,6 +284,26 @@
             background: linear-gradient(135deg, #667eea, #764ba2);
         }
 
+        .new-badge {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            background: linear-gradient(135deg, #ff6b6b, #ee5a24);
+            color: white;
+            padding: 0.2rem 0.6rem;
+            border-radius: 10px;
+            font-size: 0.7rem;
+            font-weight: bold;
+            text-transform: uppercase;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); }
+        }
+
         @keyframes fadeInUp {
             from {
                 opacity: 0;
@@ -369,6 +389,15 @@
                     <h3>STFT Analyzer</h3>
                     <p>Upload audio files and perform Short-Time Fourier Transform analysis on custom windows. Features Hann windowing, dB scaling, and adjustable frequency ranges for professional spectral analysis.</p>
                     <a href="stft-analyzer-tool/" class="tool-btn">Launch STFT Tool</a>
+                </div>
+
+                <div class="tool-card">
+                    <div class="new-badge">New!</div>
+                    <div class="category-badge synthesis">Analysis</div>
+                    <span class="tool-icon">🎼</span>
+                    <h3>Chord Harmonic Collision Tool</h3>
+                    <p>Analyze harmonic interactions in triads and complex chords using just intonation. Visualize how harmonic series collide and create consonance or dissonance in musical chords.</p>
+                    <a href="chord-harmonic-collision/" class="tool-btn">Analyze Chords</a>
                 </div>
             </div>
 
@@ -461,6 +490,11 @@
                         <h3>Data-Driven</h3>
                         <p>Get precise measurements of your auditory capabilities and detailed frequency analysis</p>
                     </div>
+                    <div class="feature-item">
+                        <span class="feature-icon">🎵</span>
+                        <h3>Just Intonation</h3>
+                        <p>Explore pure harmonic relationships with mathematically perfect frequency ratios</p>
+                    </div>
                 </div>
             </div>
         </section>
@@ -472,8 +506,18 @@
                 
                 <p>The project includes sound synthesis tools, advanced spectral analysis capabilities, and psychoacoustic testing applications, making complex acoustic phenomena understandable through visualization, experimentation, and scientific measurement. Each tool is designed with educational principles in mind, providing immediate feedback and encouraging exploration.</p>
 
+                <h3 style="margin-top: 2rem; margin-bottom: 1rem;">New: Chord Harmonic Collision Analysis</h3>
+                <p>Our latest tool brings professional harmonic analysis to chord progressions and complex musical structures. Using just intonation principles, this tool reveals:</p>
+                <ul style="margin-left: 2rem; margin-top: 1rem;">
+                    <li>How harmonic series from different notes interact and create interference patterns</li>
+                    <li>The mathematical basis of consonance and dissonance in musical chords</li>
+                    <li>Real-time visualization of harmonic collisions with severity analysis</li>
+                    <li>Support for custom chord construction using pure frequency ratios</li>
+                    <li>Multiple instrument models with realistic harmonic profiles</li>
+                </ul>
+
                 <h3 style="margin-top: 2rem; margin-bottom: 1rem;">Advanced Audio Analysis</h3>
-                <p>Our new STFT (Short-Time Fourier Transform) Analyzer brings professional-grade spectral analysis to your browser. Upload any audio file and explore its frequency content with precision controls for window size, frequency range, and time positioning. Features include:</p>
+                <p>Our STFT (Short-Time Fourier Transform) Analyzer brings professional-grade spectral analysis to your browser. Upload any audio file and explore its frequency content with precision controls for window size, frequency range, and time positioning. Features include:</p>
                 <ul style="margin-left: 2rem; margin-top: 1rem;">
                     <li>Multiple window functions (Hann, Hamming, Blackman, Rectangular)</li>
                     <li>Customizable frequency range analysis (zoom into specific bands)</li>
@@ -481,7 +525,7 @@
                     <li>Real-time parameter adjustment and instant visual feedback</li>
                 </ul>
 
-                <h3 style="margin-top: 2rem; margin-bottom: 1rem;">New Psychoacoustic Testing Suite</h3>
+                <h3 style="margin-top: 2rem; margin-bottom: 1rem;">Psychoacoustic Testing Suite</h3>
                 <p>Our psychoacoustic tools let you explore the fascinating intersection of physics and perception. These tests are based on established research methods and help you understand:</p>
                 <ul style="margin-left: 2rem; margin-top: 1rem;">
                     <li>How precisely your ears can distinguish between different frequencies</li>
@@ -500,6 +544,7 @@
                     <li>Signal processing and digital audio courses</li>
                     <li>Audiology and hearing science research</li>
                     <li>Professional audio analysis and quality control</li>
+                    <li>Music production and harmonic analysis</li>
                     <li>Self-directed learning and exploration</li>
                 </ul>
             </div>
@@ -542,7 +587,7 @@
                 </div>
 
                 <h3 style="margin-top: 2rem; margin-bottom: 1rem;">For Educators & Researchers</h3>
-                <p>If you're an educator or researcher interested in incorporating these tools into your curriculum or studies, I'm happy to provide guidance on how to best use them for your specific goals. The psychoacoustic tests can provide valuable data for understanding individual differences in auditory perception, while the synthesis tools offer hands-on exploration of acoustic principles.</p>
+                <p>If you're an educator or researcher interested in incorporating these tools into your curriculum or studies, I'm happy to provide guidance on how to best use them for your specific goals. The psychoacoustic tests can provide valuable data for understanding individual differences in auditory perception, while the synthesis and harmonic analysis tools offer hands-on exploration of acoustic principles and music theory.</p>
             </div>
         </section>
     </main>
