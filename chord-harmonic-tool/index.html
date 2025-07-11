@@ -255,7 +255,12 @@
         }
 
         .collision-weak {
+            border-left: 5px solid #f39c12;
+        }
+
+        .collision-consonant {
             border-left: 5px solid #27ae60;
+            background: linear-gradient(90deg, rgba(39, 174, 96, 0.1), rgba(255, 255, 255, 1));
         }
 
         .frequency-display {
@@ -701,67 +706,136 @@
             // Sort harmonics by frequency
             allHarmonics.sort((a, b) => a.frequency - b.frequency);
             
-            // Find collisions (harmonics within 10 Hz)
+            // Find collisions using ERB formula
             for (let i = 0; i < allHarmonics.length - 1; i++) {
                 for (let j = i + 1; j < allHarmonics.length; j++) {
                     const h1 = allHarmonics[i];
                     const h2 = allHarmonics[j];
-                    const freqDiff = Math.abs(h1.frequency - h2.frequency);
                     
-                    if (freqDiff < 20 && h1.noteIndex !== h2.noteIndex) {
-                        const avgAmplitude = (h1.amplitude + h2.amplitude) / 2;
-                        const severity = freqDiff < 5 ? 'strong' : freqDiff < 10 ? 'moderate' : 'weak';
+                    if (h1.noteIndex !== h2.noteIndex) {
+                        const freqDiff = Math.abs(h1.frequency - h2.frequency);
+                        const avgFreq = (h1.frequency + h2.frequency) / 2;
                         
-                        collisions.push({
-                            freq1: h1.frequency,
-                            freq2: h2.frequency,
-                            note1: h1.noteIndex,
-                            note2: h2.noteIndex,
-                            harmonic1: h1.harmonic,
-                            harmonic2: h2.harmonic,
-                            difference: freqDiff,
-                            amplitude: avgAmplitude,
-                            severity: severity
-                        });
+                        // ERB formula: delta_f = f_center/9.2645 + 24.7
+                        const erbBandwidth = avgFreq / 9.2645 + 24.7;
+                        
+                        let collisionType = 'none';
+                        let severity = 'none';
+                        
+                        if (freqDiff < 0.5) {
+                            // Perfect collision (< 0.5 Hz difference) = Consonance
+                            collisionType = 'consonant';
+                            severity = 'perfect';
+                        } else if (freqDiff > 0 && freqDiff < erbBandwidth) {
+                            // Within ERB bandwidth but not perfect = Dissonance
+                            collisionType = 'dissonant';
+                            // Calculate severity based on position within ERB bandwidth
+                            const position = freqDiff / erbBandwidth;
+                            if (position < 0.3) {
+                                severity = 'strong';
+                            } else if (position < 0.7) {
+                                severity = 'moderate';
+                            } else {
+                                severity = 'weak';
+                            }
+                        }
+                        
+                        if (collisionType !== 'none') {
+                            const avgAmplitude = (h1.amplitude + h2.amplitude) / 2;
+                            
+                            collisions.push({
+                                freq1: h1.frequency,
+                                freq2: h2.frequency,
+                                note1: h1.noteIndex,
+                                note2: h2.noteIndex,
+                                harmonic1: h1.harmonic,
+                                harmonic2: h2.harmonic,
+                                difference: freqDiff,
+                                amplitude: avgAmplitude,
+                                severity: severity,
+                                type: collisionType,
+                                erbBandwidth: erbBandwidth
+                            });
+                        }
                     }
                 }
             }
             
-            // Sort collisions by severity and amplitude
+            // Sort collisions: consonant first (by amplitude), then dissonant (by severity and amplitude)
             collisions.sort((a, b) => {
-                const severityOrder = { strong: 3, moderate: 2, weak: 1 };
-                if (severityOrder[a.severity] !== severityOrder[b.severity]) {
-                    return severityOrder[b.severity] - severityOrder[a.severity];
+                if (a.type !== b.type) {
+                    return a.type === 'consonant' ? -1 : 1; // Consonant first
                 }
-                return b.amplitude - a.amplitude;
+                if (a.type === 'dissonant') {
+                    const severityOrder = { strong: 3, moderate: 2, weak: 1 };
+                    if (severityOrder[a.severity] !== severityOrder[b.severity]) {
+                        return severityOrder[b.severity] - severityOrder[a.severity];
+                    }
+                }
+                return b.amplitude - a.amplitude; // Higher amplitude first
             });
             
             // Display collisions
             let html = '';
             if (collisions.length === 0) {
-                html = '<p>No significant harmonic collisions detected.</p>';
+                html = '<p>No significant harmonic interactions detected within ERB bandwidth.</p>';
             } else {
-                html = '<h4>Detected Harmonic Collisions:</h4>';
-                collisions.slice(0, 10).forEach(collision => {
-                    const color1 = noteColors[collision.note1 % noteColors.length];
-                    const color2 = noteColors[collision.note2 % noteColors.length];
-                    
-                    html += `
-                        <div class="collision-item collision-${collision.severity}">
-                            <span>
-                                <span style="color: ${color1};">Note ${collision.note1 + 1}</span> H${collision.harmonic1} ↔ 
-                                <span style="color: ${color2};">Note ${collision.note2 + 1}</span> H${collision.harmonic2}
-                            </span>
-                            <span class="frequency-display">
-                                ${collision.freq1.toFixed(1)}Hz ↔ ${collision.freq2.toFixed(1)}Hz 
-                                (Δ${collision.difference.toFixed(1)}Hz)
-                            </span>
-                        </div>
-                    `;
-                });
+                const consonantCollisions = collisions.filter(c => c.type === 'consonant');
+                const dissonantCollisions = collisions.filter(c => c.type === 'dissonant');
                 
-                if (collisions.length > 10) {
-                    html += `<p style="margin-top: 10px; font-style: italic;">... and ${collisions.length - 10} more collisions</p>`;
+                if (consonantCollisions.length > 0) {
+                    html += '<h4>🎵 Consonant Harmonic Alignments (Perfect Collisions):</h4>';
+                    consonantCollisions.slice(0, 5).forEach(collision => {
+                        const color1 = noteColors[collision.note1 % noteColors.length];
+                        const color2 = noteColors[collision.note2 % noteColors.length];
+                        
+                        html += `
+                            <div class="collision-item collision-consonant">
+                                <span>
+                                    <span style="color: ${color1};">Note ${collision.note1 + 1}</span> H${collision.harmonic1} ≈ 
+                                    <span style="color: ${color2};">Note ${collision.note2 + 1}</span> H${collision.harmonic2}
+                                </span>
+                                <span class="frequency-display">
+                                    ${collision.freq1.toFixed(1)}Hz ≈ ${collision.freq2.toFixed(1)}Hz 
+                                    (Δ${collision.difference.toFixed(2)}Hz)
+                                </span>
+                            </div>
+                        `;
+                    });
+                }
+                
+                if (dissonantCollisions.length > 0) {
+                    html += '<h4>⚡ Dissonant Harmonic Collisions (Within ERB Bandwidth):</h4>';
+                    dissonantCollisions.slice(0, 8).forEach(collision => {
+                        const color1 = noteColors[collision.note1 % noteColors.length];
+                        const color2 = noteColors[collision.note2 % noteColors.length];
+                        
+                        html += `
+                            <div class="collision-item collision-${collision.severity}">
+                                <span>
+                                    <span style="color: ${color1};">Note ${collision.note1 + 1}</span> H${collision.harmonic1} ⚡ 
+                                    <span style="color: ${color2};">Note ${collision.note2 + 1}</span> H${collision.harmonic2}
+                                </span>
+                                <span class="frequency-display">
+                                    ${collision.freq1.toFixed(1)}Hz ⚡ ${collision.freq2.toFixed(1)}Hz 
+                                    (Δ${collision.difference.toFixed(1)}Hz, ERB=${collision.erbBandwidth.toFixed(1)}Hz)
+                                </span>
+                            </div>
+                        `;
+                    });
+                }
+                
+                const totalConsonant = consonantCollisions.length;
+                const totalDissonant = dissonantCollisions.length;
+                if (totalConsonant + totalDissonant > 13) {
+                    html += `<p style="margin-top: 10px; font-style: italic;">
+                        ... and ${totalConsonant + totalDissonant - 13} more interactions 
+                        (${totalConsonant} consonant, ${totalDissonant} dissonant total)
+                    </p>`;
+                } else {
+                    html += `<p style="margin-top: 10px; font-style: italic;">
+                        Total: ${totalConsonant} consonant, ${totalDissonant} dissonant interactions
+                    </p>`;
                 }
             }
             
