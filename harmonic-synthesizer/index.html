@@ -66,6 +66,13 @@
             border-radius: 8px;
             min-width: 65px;
             flex-shrink: 0;
+            position: relative;
+            transition: all 0.2s ease;
+        }
+        
+        .harmonic-control.disabled {
+            background: #e9ecef;
+            opacity: 0.6;
         }
         
         .harmonic-label {
@@ -78,6 +85,74 @@
             font-size: 9px;
             color: #666;
             margin-bottom: 8px;
+        }
+        
+        .toggle-container {
+            margin-bottom: 8px;
+        }
+        
+        .toggle-switch {
+            position: relative;
+            width: 34px;
+            height: 18px;
+            background: #ccc;
+            border-radius: 9px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        
+        .toggle-switch.active {
+            background: #4CAF50;
+        }
+        
+        .toggle-slider {
+            position: absolute;
+            top: 2px;
+            left: 2px;
+            width: 14px;
+            height: 14px;
+            background: white;
+            border-radius: 50%;
+            transition: transform 0.2s;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+        }
+        
+        .toggle-switch.active .toggle-slider {
+            transform: translateX(16px);
+        }
+        
+        .polarity-container {
+            margin-bottom: 8px;
+        }
+        
+        .polarity-button {
+            width: 34px;
+            height: 20px;
+            border: 2px solid #666;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 12px;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+            background: white;
+            color: #333;
+        }
+        
+        .polarity-button:hover {
+            border-color: #333;
+        }
+        
+        .polarity-button:active {
+            transform: scale(0.95);
+        }
+        
+        .polarity-button.inverted {
+            background: #ff5722;
+            color: white;
+            border-color: #ff5722;
         }
         
         .slider-container {
@@ -100,6 +175,12 @@
             position: absolute;
             top: 50px;
             left: -40px;
+            transition: opacity 0.2s;
+        }
+        
+        .slider:disabled {
+            opacity: 0.3;
+            cursor: not-allowed;
         }
         
         .slider::-webkit-slider-thumb {
@@ -113,6 +194,11 @@
             box-shadow: 0 2px 4px rgba(0,0,0,0.2);
         }
         
+        .slider:disabled::-webkit-slider-thumb {
+            background: #999;
+            cursor: not-allowed;
+        }
+        
         .slider::-moz-range-thumb {
             width: 20px;
             height: 20px;
@@ -123,18 +209,33 @@
             box-shadow: 0 2px 4px rgba(0,0,0,0.2);
         }
         
+        .slider:disabled::-moz-range-thumb {
+            background: #999;
+            cursor: not-allowed;
+        }
+        
         .value-display {
             font-size: 10px;
             text-align: center;
             margin-top: 8px;
             line-height: 1.1;
             min-height: 24px;
+            transition: opacity 0.2s;
+        }
+        
+        .harmonic-control.disabled .value-display {
+            opacity: 0.5;
         }
         
         .phase-display {
             font-size: 10px;
             color: #2020d0;
             margin-top: 3px;
+            transition: opacity 0.2s;
+        }
+        
+        .harmonic-control.disabled .phase-display {
+            opacity: 0.5;
         }
         
         .buttons {
@@ -206,7 +307,24 @@
             background: #1565c0; 
         }
         
+        .btn-toggle { 
+            background: #00695c; 
+            color: white; 
+        }
+        
+        .btn-toggle:active { 
+            background: #004d40; 
+        }
+        
         .presets {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            justify-content: center;
+            margin-bottom: 15px;
+        }
+        
+        .toggle-actions {
             display: flex;
             gap: 8px;
             flex-wrap: wrap;
@@ -276,6 +394,20 @@
                 min-width: 70px;
             }
             
+            .toggle-switch {
+                width: 30px;
+                height: 16px;
+            }
+            
+            .toggle-slider {
+                width: 12px;
+                height: 12px;
+            }
+            
+            .toggle-switch.active .toggle-slider {
+                transform: translateX(14px);
+            }
+            
             h1 {
                 font-size: 18px;
             }
@@ -335,6 +467,14 @@
                 <button class="btn btn-preset" onclick="setPreset('square')">Square</button>
                 <button class="btn btn-preset" onclick="setPreset('triangle')">Triangle</button>
             </div>
+            
+            <h3>Toggle Actions:</h3>
+            <div class="toggle-actions">
+                <button class="btn btn-toggle" onclick="toggleAllHarmonics(true)">Enable All</button>
+                <button class="btn btn-toggle" onclick="toggleAllHarmonics(false)">Disable All</button>
+                <button class="btn btn-toggle" onclick="toggleOddHarmonics()">Toggle Odd</button>
+                <button class="btn btn-toggle" onclick="toggleEvenHarmonics()">Toggle Even</button>
+            </div>
         </div>
     </div>
 
@@ -349,6 +489,8 @@
         
         let harmonicAmps = new Array(numHarmonics).fill(0);
         let harmonicPhases = new Array(numHarmonics).fill(0);
+        let harmonicEnabled = new Array(numHarmonics).fill(false);
+        let harmonicInverted = new Array(numHarmonics).fill(false);
         let audioContext;
         let currentSource;
         let chart;
@@ -357,6 +499,7 @@
         
         // Initialize with fundamental only
         harmonicAmps[0] = 1.0;
+        harmonicEnabled[0] = true;
         
         // Initialize audio context with iOS compatibility
         function initAudio() {
@@ -401,7 +544,7 @@
             const waveform = new Array(totalSamples).fill(0);
             
             for (let i = 0; i < numHarmonics; i++) {
-                if (harmonicAmps[i] > 0) {
+                if (harmonicAmps[i] > 0 && harmonicEnabled[i]) {
                     const freq = f0 * (i + 1);
                     const phaseRad = harmonicPhases[i] * Math.PI / 180;
                     
@@ -431,7 +574,7 @@
             
             // Generate composite signal
             for (let i = 0; i < numHarmonics; i++) {
-                if (harmonicAmps[i] > 0) {
+                if (harmonicAmps[i] > 0 && harmonicEnabled[i]) {
                     const freq = f0 * (i + 1);
                     const phaseRad = harmonicPhases[i] * Math.PI / 180;
                     
@@ -566,6 +709,55 @@
             }
         }
         
+        // Toggle polarity (add/subtract 180 degrees)
+        function togglePolarity(harmonicIndex) {
+            harmonicInverted[harmonicIndex] = !harmonicInverted[harmonicIndex];
+            
+            if (harmonicInverted[harmonicIndex]) {
+                harmonicPhases[harmonicIndex] = (harmonicPhases[harmonicIndex] + 180) % 360;
+            } else {
+                harmonicPhases[harmonicIndex] = (harmonicPhases[harmonicIndex] - 180 + 360) % 360;
+            }
+            
+            updatePolarityDisplay(harmonicIndex);
+            updateDisplays();
+        }
+        
+        // Update polarity button display
+        function updatePolarityDisplay(harmonicIndex) {
+            const polarityButton = document.getElementById(`polarity-${harmonicIndex}`);
+            
+            if (harmonicInverted[harmonicIndex]) {
+                polarityButton.classList.add('inverted');
+                polarityButton.textContent = '-';
+            } else {
+                polarityButton.classList.remove('inverted');
+                polarityButton.textContent = '+';
+            }
+        }
+        function toggleHarmonic(harmonicIndex) {
+            harmonicEnabled[harmonicIndex] = !harmonicEnabled[harmonicIndex];
+            updateHarmonicDisplay(harmonicIndex);
+            updateDisplays();
+        }
+        
+        // Update individual harmonic display
+        function updateHarmonicDisplay(harmonicIndex) {
+            const controlDiv = document.getElementById(`harmonic-${harmonicIndex}`);
+            const toggleSwitch = document.getElementById(`toggle-${harmonicIndex}`);
+            const slider = document.getElementById(`slider-${harmonicIndex}`);
+            
+            if (harmonicEnabled[harmonicIndex]) {
+                controlDiv.classList.remove('disabled');
+                toggleSwitch.classList.add('active');
+                slider.disabled = false;
+            } else {
+                controlDiv.classList.add('disabled');
+                toggleSwitch.classList.remove('active');
+                slider.disabled = true;
+            }
+        }
+        
         // Update displays
         function updateDisplays() {
             const waveform = generateWaveform();
@@ -609,8 +801,11 @@
             harmonicAmps.fill(0);
             harmonicAmps[0] = 1.0;
             harmonicPhases.fill(0);
+            harmonicEnabled.fill(false);
+            harmonicEnabled[0] = true;
+            harmonicInverted.fill(false);
             
-            // Reset sliders
+            // Reset sliders, toggles, and polarity buttons
             for (let i = 0; i < numHarmonics; i++) {
                 const slider = document.getElementById(`slider-${i}`);
                 if (i === 0) {
@@ -618,6 +813,8 @@
                 } else {
                     slider.value = minDb;
                 }
+                updateHarmonicDisplay(i);
+                updatePolarityDisplay(i);
             }
             
             updateDisplays();
@@ -634,6 +831,13 @@
         // Reset phase
         function resetPhase() {
             harmonicPhases.fill(0);
+            harmonicInverted.fill(false);
+            
+            // Update polarity button displays
+            for (let i = 0; i < numHarmonics; i++) {
+                updatePolarityDisplay(i);
+            }
+            
             updateDisplays();
         }
         
@@ -641,29 +845,39 @@
         function setPreset(type) {
             harmonicAmps.fill(0);
             harmonicPhases.fill(0);
+            harmonicEnabled.fill(false);
+            harmonicInverted.fill(false);
             
             switch (type) {
                 case 'sine':
                     harmonicAmps[0] = 1.0;
+                    harmonicEnabled[0] = true;
                     break;
                 case 'sawtooth':
                     for (let i = 0; i < numHarmonics; i++) {
                         harmonicAmps[i] = 1 / (i + 1);
+                        harmonicEnabled[i] = true;
                     }
                     break;
                 case 'square':
                     for (let i = 0; i < numHarmonics; i += 2) {
                         harmonicAmps[i] = 1 / (i + 1);
+                        harmonicEnabled[i] = true;
                     }
                     break;
                 case 'triangle':
-                    for (let i = 0; i < numHarmonics; i += 2) {
-                        harmonicAmps[i] = 1 / Math.pow(i + 1, 2);
+                    for (let i = 0; i < numHarmonics; i++) {
+                        const n = i + 1; // harmonic number (1-based)
+                        const amplitude = Math.abs(8 / (n * n * Math.PI * Math.PI) * Math.sin(n * Math.PI / 2));
+                        if (amplitude > 0.001) { // Only enable harmonics with significant amplitude
+                            harmonicAmps[i] = amplitude;
+                            harmonicEnabled[i] = true;
+                        }
                     }
                     break;
             }
             
-            // Update sliders
+            // Update sliders, toggles, and polarity buttons
             for (let i = 0; i < numHarmonics; i++) {
                 const slider = document.getElementById(`slider-${i}`);
                 if (harmonicAmps[i] > 0) {
@@ -671,8 +885,37 @@
                 } else {
                     slider.value = minDb;
                 }
+                updateHarmonicDisplay(i);
+                updatePolarityDisplay(i);
             }
             
+            updateDisplays();
+        }
+        
+        // Toggle all harmonics
+        function toggleAllHarmonics(enable) {
+            for (let i = 0; i < numHarmonics; i++) {
+                harmonicEnabled[i] = enable;
+                updateHarmonicDisplay(i);
+            }
+            updateDisplays();
+        }
+        
+        // Toggle odd harmonics (1st, 3rd, 5th, etc.)
+        function toggleOddHarmonics() {
+            for (let i = 0; i < numHarmonics; i += 2) {
+                harmonicEnabled[i] = !harmonicEnabled[i];
+                updateHarmonicDisplay(i);
+            }
+            updateDisplays();
+        }
+        
+        // Toggle even harmonics (2nd, 4th, 6th, etc.)
+        function toggleEvenHarmonics() {
+            for (let i = 1; i < numHarmonics; i += 2) {
+                harmonicEnabled[i] = !harmonicEnabled[i];
+                updateHarmonicDisplay(i);
+            }
             updateDisplays();
         }
         
@@ -684,23 +927,38 @@
             for (let i = 0; i < numHarmonics; i++) {
                 const controlDiv = document.createElement('div');
                 controlDiv.className = 'harmonic-control';
+                controlDiv.id = `harmonic-${i}`;
                 
                 const initialDb = (i === 0) ? 0 : minDb;
                 
                 controlDiv.innerHTML = `
                     <div class="harmonic-label">H${i + 1}</div>
                     <div class="freq-label">${Math.round(f0 * (i + 1))}Hz</div>
+                    <div class="toggle-container">
+                        <div class="toggle-switch${i === 0 ? ' active' : ''}" id="toggle-${i}" onclick="toggleHarmonic(${i})">
+                            <div class="toggle-slider"></div>
+                        </div>
+                    </div>
+                    <div class="polarity-container">
+                        <div class="polarity-button" id="polarity-${i}" onclick="togglePolarity(${i})">+</div>
+                    </div>
                     <div class="slider-container">
                         <input type="range" class="slider" id="slider-${i}" 
                                min="${minDb}" max="${maxDb}" value="${initialDb}" step="0.1"
                                oninput="sliderChanged(${i}, this.value)"
-                               ontouchstart="this.focus()" ontouchend="this.blur()">
+                               ontouchstart="this.focus()" ontouchend="this.blur()"
+                               ${i === 0 ? '' : 'disabled'}>
                     </div>
                     <div class="value-display" id="value-${i}"></div>
                     <div class="phase-display" id="phase-${i}"></div>
                 `;
                 
                 controlsDiv.appendChild(controlDiv);
+                
+                // Set initial state
+                if (i !== 0) {
+                    controlDiv.classList.add('disabled');
+                }
             }
             
             // Initialize chart with mobile optimizations
@@ -786,3 +1044,4 @@
     </script>
 </body>
 </html>
+                

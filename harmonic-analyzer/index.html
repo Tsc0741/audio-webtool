@@ -22,7 +22,7 @@
             max-width: 1400px;
             margin: 0 auto;
             display: grid;
-            grid-template-columns: 1fr 350px;
+            grid-template-columns: 1fr 400px;
             gap: 20px;
             min-height: calc(100vh - 40px);
         }
@@ -48,21 +48,21 @@
         
         .header {
             text-align: center;
-            margin-bottom: 20px;
-            padding-bottom: 15px;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
             border-bottom: 2px solid #e9ecef;
         }
         
         .header h1 {
             color: #0f4c75;
-            font-size: 1.8em;
-            margin-bottom: 8px;
+            font-size: 1.5em;
+            margin-bottom: 5px;
             font-weight: 600;
         }
         
         .header p {
             color: #6c757d;
-            font-size: 0.95em;
+            font-size: 0.9em;
         }
         
         .plot-container {
@@ -71,14 +71,14 @@
             border: 2px solid #dee2e6;
             border-radius: 8px;
             position: relative;
-            min-height: 500px;
+            min-height: 350px;
+            max-height: 400px;
             overflow: hidden;
         }
         
         .plot-canvas {
             width: 100%;
             height: 100%;
-            cursor: crosshair;
             display: block;
         }
         
@@ -86,8 +86,8 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 15px;
-            padding: 12px;
+            margin-bottom: 10px;
+            padding: 8px;
             background: #f8f9fa;
             border-radius: 8px;
             border: 1px solid #dee2e6;
@@ -95,13 +95,186 @@
         
         .plot-controls {
             display: flex;
-            gap: 10px;
+            gap: 8px;
             align-items: center;
         }
         
         .plot-info {
-            font-size: 0.85em;
+            font-size: 0.8em;
             color: #6c757d;
+        }
+        
+        .value-editor {
+            background: #f0f7ff;
+            border: 2px solid #0d6efd;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 15px;
+        }
+        
+        .value-editor h3 {
+            color: #0f4c75;
+            margin: 0 0 15px 0;
+            font-size: 1.1em;
+            font-weight: 600;
+            text-align: center;
+        }
+        
+        .slider-group {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+        
+        .slider-container {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        
+        .slider-label {
+            font-weight: 500;
+            color: #495057;
+            font-size: 0.9em;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .slider-value {
+            font-family: 'Courier New', monospace;
+            background: #e9ecef;
+            padding: 3px 8px;
+            border-radius: 4px;
+            font-size: 0.85em;
+            color: #495057;
+        }
+        
+        .range-slider {
+            width: 100%;
+            height: 6px;
+            border-radius: 3px;
+            background: #dee2e6;
+            outline: none;
+            cursor: pointer;
+            -webkit-appearance: none;
+        }
+        
+        .range-slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            background: #0d6efd;
+            cursor: pointer;
+            border: 2px solid white;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+        
+        .range-slider::-moz-range-thumb {
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            background: #0d6efd;
+            cursor: pointer;
+            border: 2px solid white;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+        
+        .current-value-display {
+            background: white;
+            border: 1px solid #dee2e6;
+            border-radius: 6px;
+            padding: 12px;
+            text-align: center;
+            margin: 10px 0;
+        }
+        
+        .current-value-display .label {
+            font-size: 0.8em;
+            color: #6c757d;
+            margin-bottom: 4px;
+        }
+        
+        .current-value-display .value {
+            font-family: 'Courier New', monospace;
+            font-size: 1.1em;
+            font-weight: bold;
+            color: #0f4c75;
+        }
+        
+        .asymmetric-checkbox {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin: 10px 0;
+            padding: 10px;
+            background: rgba(255, 193, 7, 0.1);
+            border: 1px solid #ffc107;
+            border-radius: 6px;
+        }
+        
+        .asymmetric-checkbox input[type="checkbox"] {
+            width: 16px;
+            height: 16px;
+            cursor: pointer;
+        }
+        
+        .asymmetric-checkbox label {
+            font-size: 0.85em;
+            font-weight: 500;
+            color: #664d03;
+            cursor: pointer;
+            flex: 1;
+        }
+        
+        .asymmetric-info {
+            background: rgba(255, 193, 7, 0.1);
+            border: 1px solid #ffc107;
+            border-radius: 6px;
+            padding: 8px;
+            font-size: 0.8em;
+            color: #664d03;
+            margin-top: 5px;
+            display: none;
+        }
+        
+        .asymmetric-info.active {
+            display: block;
+        }
+        
+        .set-value-btn {
+            background: linear-gradient(135deg, #0d6efd, #0056b3);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            padding: 12px 20px;
+            font-size: 1em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            width: 100%;
+            margin-top: 10px;
+            box-shadow: 0 2px 8px rgba(13, 110, 253, 0.3);
+        }
+        
+        .set-value-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(13, 110, 253, 0.4);
+        }
+        
+        .set-value-btn:active {
+            transform: translateY(0);
+        }
+        
+        .set-value-btn.asymmetric {
+            background: linear-gradient(135deg, #ffc107, #e0a800);
+            box-shadow: 0 2px 8px rgba(255, 193, 7, 0.3);
+        }
+        
+        .set-value-btn.asymmetric:hover {
+            box-shadow: 0 4px 12px rgba(255, 193, 7, 0.4);
         }
         
         .control-section {
@@ -122,12 +295,6 @@
             display: flex;
             flex-direction: column;
             gap: 12px;
-        }
-        
-        .input-group {
-            display: flex;
-            flex-direction: column;
-            gap: 5px;
         }
         
         .input-group label {
@@ -298,9 +465,18 @@
             stroke-width: 2;
         }
         
+        .stem-marker.asymmetric {
+            fill: #ffc107;
+            stroke: #ffc107;
+        }
+        
         .stem-line {
             stroke: #0d6efd;
             stroke-width: 2;
+        }
+        
+        .stem-line.asymmetric {
+            stroke: #ffc107;
         }
         
         .interpolated-curve {
@@ -358,7 +534,7 @@
                     <button class="btn btn-outline" onclick="toggleGrid()">⊞ Grid</button>
                 </div>
                 <div class="plot-info">
-                    <span id="plotInfo">Click points to edit • Red curve: Harmonic synthesis</span>
+                    <span id="plotInfo">Red curve: Harmonic synthesis</span>
                 </div>
             </div>
             
@@ -374,6 +550,50 @@
         </div>
         
         <div class="side-panel">
+            <!-- Value Editor -->
+            <div class="value-editor">
+                <h3>📊 Sample Value Editor</h3>
+                <div class="slider-group">
+                    <div class="slider-container">
+                        <div class="slider-label">
+                            Sample Index (n)
+                            <span class="slider-value" id="indexValue">0</span>
+                        </div>
+                        <input type="range" class="range-slider" id="sampleIndexSlider" 
+                               min="0" max="20" value="0" step="1" 
+                               oninput="updateIndexDisplay()">
+                    </div>
+                    
+                    <div class="slider-container">
+                        <div class="slider-label">
+                            Amplitude
+                            <span class="slider-value" id="amplitudeValue">0.000</span>
+                        </div>
+                        <input type="range" class="range-slider" id="amplitudeSlider" 
+                               min="-1" max="1" value="0" step="0.001" 
+                               oninput="updateAmplitudeDisplay()">
+                    </div>
+                </div>
+                
+                <div class="asymmetric-checkbox">
+                    <input type="checkbox" id="asymmetricMode" onchange="toggleAsymmetricMode()">
+                    <label for="asymmetricMode">Asymmetric Setting (Mirror Mode)</label>
+                </div>
+                
+                <div class="asymmetric-info" id="asymmetricInfo">
+                    Setting x[<span id="primaryIndex">0</span>] = A and x[<span id="mirrorIndex">20</span>] = -A
+                </div>
+                
+                <div class="current-value-display">
+                    <div class="label">Current Value at Selected Index</div>
+                    <div class="value" id="currentSampleValue">x[0] = 0.000</div>
+                </div>
+                
+                <button class="set-value-btn" id="setValueBtn" onclick="setSampleValue()">
+                    🔧 Set Value
+                </button>
+            </div>
+            
             <!-- Sequence Parameters -->
             <div class="control-section">
                 <h3>Sequence Parameters</h3>
@@ -468,6 +688,8 @@
         let showGrid = true;
         let zoomLevel = 1;
         let panOffset = { x: 0, y: 0 };
+        let asymmetricMode = false;
+        let lastAsymmetricIndices = [];
         
         // Plot dimensions
         const plotMargin = { top: 40, right: 40, bottom: 60, left: 60 };
@@ -482,6 +704,167 @@
             updateHarmonicsDisplay();
             drawPlot();
             updateSampleDisplay();
+            initValueEditor();
+        }
+        
+        // Initialize value editor
+        function initValueEditor() {
+            updateSliderRanges();
+            updateIndexDisplay();
+            updateAmplitudeDisplay();
+            updateCurrentValueDisplay();
+        }
+        
+        // Update slider ranges based on current settings
+        function updateSliderRanges() {
+            const indexSlider = document.getElementById('sampleIndexSlider');
+            const amplitudeSlider = document.getElementById('amplitudeSlider');
+            
+            indexSlider.max = sampleCount - 1;
+            amplitudeSlider.min = -amplitudeRange/2;
+            amplitudeSlider.max = amplitudeRange/2;
+            
+            // Reset to valid values if out of range
+            if (parseInt(indexSlider.value) >= sampleCount) {
+                indexSlider.value = 0;
+            }
+            
+            const currentAmp = parseFloat(amplitudeSlider.value);
+            if (currentAmp < -amplitudeRange/2 || currentAmp > amplitudeRange/2) {
+                amplitudeSlider.value = 0;
+            }
+        }
+        
+        // Update index display
+        function updateIndexDisplay() {
+            const slider = document.getElementById('sampleIndexSlider');
+            const display = document.getElementById('indexValue');
+            display.textContent = slider.value;
+            updateCurrentValueDisplay();
+            updateAsymmetricInfo();
+        }
+        
+        // Update amplitude display
+        function updateAmplitudeDisplay() {
+            const slider = document.getElementById('amplitudeSlider');
+            const display = document.getElementById('amplitudeValue');
+            display.textContent = parseFloat(slider.value).toFixed(3);
+        }
+        
+        // Update current value display
+        function updateCurrentValueDisplay() {
+            const indexSlider = document.getElementById('sampleIndexSlider');
+            const index = parseInt(indexSlider.value);
+            const currentValue = sequenceData[index] || 0;
+            const display = document.getElementById('currentSampleValue');
+            
+            if (asymmetricMode) {
+                const mirrorIndex = sampleCount - 1 - index;
+                const mirrorValue = sequenceData[mirrorIndex] || 0;
+                display.textContent = `x[${index}] = ${currentValue.toFixed(3)}, x[${mirrorIndex}] = ${mirrorValue.toFixed(3)}`;
+            } else {
+                display.textContent = `x[${index}] = ${currentValue.toFixed(3)}`;
+            }
+            
+            // Update amplitude slider to show current value
+            const amplitudeSlider = document.getElementById('amplitudeSlider');
+            amplitudeSlider.value = currentValue;
+            updateAmplitudeDisplay();
+        }
+        
+        // Toggle asymmetric mode
+        function toggleAsymmetricMode() {
+            const checkbox = document.getElementById('asymmetricMode');
+            const info = document.getElementById('asymmetricInfo');
+            const btn = document.getElementById('setValueBtn');
+            
+            asymmetricMode = checkbox.checked;
+            
+            if (asymmetricMode) {
+                info.classList.add('active');
+                btn.classList.add('asymmetric');
+                btn.innerHTML = '🔧 Set Asymmetric Values';
+            } else {
+                info.classList.remove('active');
+                btn.classList.remove('asymmetric');
+                btn.innerHTML = '🔧 Set Value';
+                
+                // Clear last asymmetric highlighting
+                lastAsymmetricIndices = [];
+                drawPlot();
+            }
+            
+            updateAsymmetricInfo();
+            updateCurrentValueDisplay();
+        }
+        
+        // Update asymmetric info display
+        function updateAsymmetricInfo() {
+            if (!asymmetricMode) return;
+            
+            const indexSlider = document.getElementById('sampleIndexSlider');
+            const index = parseInt(indexSlider.value);
+            const mirrorIndex = sampleCount - 1 - index;
+            
+            document.getElementById('primaryIndex').textContent = index;
+            document.getElementById('mirrorIndex').textContent = mirrorIndex;
+        }
+        
+        // Set sample value (with asymmetric support)
+        function setSampleValue() {
+            const indexSlider = document.getElementById('sampleIndexSlider');
+            const amplitudeSlider = document.getElementById('amplitudeSlider');
+            
+            const index = parseInt(indexSlider.value);
+            const amplitude = parseFloat(amplitudeSlider.value);
+            
+            // Clear previous asymmetric highlighting
+            lastAsymmetricIndices = [];
+            
+            if (asymmetricMode) {
+                const mirrorIndex = sampleCount - 1 - index;
+                
+                // Update the selected index and its mirror with negative value
+                sequenceData[index] = amplitude;
+                sequenceData[mirrorIndex] = -amplitude;
+                
+                // Store indices for highlighting
+                lastAsymmetricIndices = [index, mirrorIndex];
+                
+                updateStatus(`Set x[${index}] = ${amplitude.toFixed(3)}, x[${mirrorIndex}] = ${(-amplitude).toFixed(3)} (Asymmetric)`);
+            } else {
+                // Update only the selected index
+                sequenceData[index] = amplitude;
+                updateStatus(`Set x[${index}] = ${amplitude.toFixed(3)}`);
+            }
+            
+            // Update displays and analysis
+            analyzeSequence();
+            drawPlot();
+            updateSampleDisplay();
+            updateCurrentValueDisplay();
+            
+            // Visual feedback
+            const btn = document.querySelector('.set-value-btn');
+            const originalText = btn.textContent;
+            const originalClass = btn.className;
+            
+            if (asymmetricMode) {
+                btn.textContent = '✅ Asymmetric Values Set!';
+                btn.style.background = 'linear-gradient(135deg, #198754, #146c43)';
+            } else {
+                btn.textContent = '✅ Value Set!';
+                btn.style.background = 'linear-gradient(135deg, #198754, #146c43)';
+            }
+            
+            setTimeout(() => {
+                btn.textContent = originalText;
+                if (asymmetricMode) {
+                    btn.style.background = 'linear-gradient(135deg, #ffc107, #e0a800)';
+                } else {
+                    btn.style.background = 'linear-gradient(135deg, #0d6efd, #0056b3)';
+                }
+            }, 1000);
         }
         
         // Initialize audio context
@@ -511,9 +894,6 @@
             
             updateDimensions();
             window.addEventListener('resize', updateDimensions);
-            
-            // Add click handler for editing points
-            svg.addEventListener('click', handlePlotClick);
         }
         
         // Generate default sine wave sequence
@@ -543,12 +923,21 @@
             if (sampleIndex >= 0 && sampleIndex < sampleCount) {
                 // Clamp amplitude to range
                 const clampedAmplitude = Math.max(-amplitudeRange/2, Math.min(amplitudeRange/2, dataY));
-                sequenceData[sampleIndex] = clampedAmplitude;
+                
+                if (asymmetricMode) {
+                    const mirrorIndex = sampleCount - 1 - sampleIndex;
+                    sequenceData[sampleIndex] = clampedAmplitude;
+                    sequenceData[mirrorIndex] = -clampedAmplitude;
+                    lastAsymmetricIndices = [sampleIndex, mirrorIndex];
+                    updateStatus(`Sample ${sampleIndex}: ${clampedAmplitude.toFixed(3)}, Sample ${mirrorIndex}: ${(-clampedAmplitude).toFixed(3)} (Asymmetric)`);
+                } else {
+                    sequenceData[sampleIndex] = clampedAmplitude;
+                    updateStatus(`Sample ${sampleIndex}: ${clampedAmplitude.toFixed(3)}`);
+                }
                 
                 analyzeSequence();
                 drawPlot();
                 updateSampleDisplay();
-                updateStatus(`Sample ${sampleIndex}: ${clampedAmplitude.toFixed(3)}`);
             }
         }
         
@@ -574,7 +963,6 @@
                 imagPart *= 2/N;
                 
                 const amplitude = Math.sqrt(realPart*realPart + imagPart*imagPart);
-                // Using -imagPart in atan2 only
                 const phase = Math.atan2(-imagPart, realPart) * 180/Math.PI;
                 
                 harmonicAmps.push(amplitude);
@@ -614,6 +1002,9 @@
             
             // Draw legend
             drawLegend(svg, totalWidth);
+            
+            // Add click handler
+            svg.onclick = handlePlotClick;
         }
         
         // Draw grid lines
@@ -767,9 +1158,12 @@
                 const y0 = plotMargin.top + plotHeight/2; // Zero line
                 const y1 = y0 - sequenceData[i] * yScale / 2; // Sample value
                 
+                // Check if this is an asymmetric highlighted point
+                const isAsymmetric = lastAsymmetricIndices.includes(i);
+                
                 // Draw stem line
                 const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
-                line.setAttribute('class', 'stem-line');
+                line.setAttribute('class', isAsymmetric ? 'stem-line asymmetric' : 'stem-line');
                 line.setAttribute('x1', x);
                 line.setAttribute('y1', y0);
                 line.setAttribute('x2', x);
@@ -778,10 +1172,10 @@
                 
                 // Draw marker
                 const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
-                circle.setAttribute('class', 'stem-marker');
+                circle.setAttribute('class', isAsymmetric ? 'stem-marker asymmetric' : 'stem-marker');
                 circle.setAttribute('cx', x);
                 circle.setAttribute('cy', y1);
-                circle.setAttribute('r', 4);
+                circle.setAttribute('r', isAsymmetric ? 5 : 4);
                 svg.appendChild(circle);
             }
         }
@@ -790,11 +1184,13 @@
         function drawLegend(svg, width) {
             const legendGroup = document.createElementNS('http://www.w3.org/2000/svg', 'g');
             
+            const legendHeight = asymmetricMode && lastAsymmetricIndices.length > 0 ? 70 : 50;
+            
             const legendBg = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
             legendBg.setAttribute('x', width - 200);
             legendBg.setAttribute('y', 15);
             legendBg.setAttribute('width', 180);
-            legendBg.setAttribute('height', 50);
+            legendBg.setAttribute('height', legendHeight);
             legendBg.setAttribute('class', 'legend');
             legendGroup.appendChild(legendBg);
             
@@ -837,6 +1233,31 @@
             curveText.textContent = 'Harmonic Synthesis';
             legendGroup.appendChild(curveText);
             
+            // Asymmetric samples legend (if active)
+            if (asymmetricMode && lastAsymmetricIndices.length > 0) {
+                const asymLine = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+                asymLine.setAttribute('x1', width - 190);
+                asymLine.setAttribute('y1', 70);
+                asymLine.setAttribute('x2', width - 170);
+                asymLine.setAttribute('y2', 70);
+                asymLine.setAttribute('class', 'stem-line asymmetric');
+                legendGroup.appendChild(asymLine);
+                
+                const asymMarker = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+                asymMarker.setAttribute('cx', width - 170);
+                asymMarker.setAttribute('cy', 70);
+                asymMarker.setAttribute('r', 4);
+                asymMarker.setAttribute('class', 'stem-marker asymmetric');
+                legendGroup.appendChild(asymMarker);
+                
+                const asymText = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+                asymText.setAttribute('x', width - 160);
+                asymText.setAttribute('y', 74);
+                asymText.setAttribute('class', 'axis-text');
+                asymText.textContent = 'Asymmetric Points';
+                legendGroup.appendChild(asymText);
+            }
+            
             svg.appendChild(legendGroup);
         }
         
@@ -871,7 +1292,9 @@
             let content = '';
             
             for (let i = 0; i < sequenceData.length; i++) {
-                content += `x[${i.toString().padStart(2)}] = ${sequenceData[i].toFixed(4)}\n`;
+                const isAsymmetric = lastAsymmetricIndices.includes(i);
+                const marker = isAsymmetric ? '★ ' : '  ';
+                content += `${marker}x[${i.toString().padStart(2)}] = ${sequenceData[i].toFixed(4)}\n`;
             }
             
             container.textContent = content;
@@ -893,8 +1316,11 @@
             const input = document.getElementById('sampleCount');
             sampleCount = parseInt(input.value);
             generateDefaultSequence();
+            updateSliderRanges();
+            updateIndexDisplay();
             drawPlot();
             updateSampleDisplay();
+            lastAsymmetricIndices = []; // Clear asymmetric highlighting
             updateStatus(`Sample count updated to ${sampleCount}`);
         }
         
@@ -908,6 +1334,8 @@
         function updateAmplitudeRange() {
             const select = document.getElementById('amplitudeRange');
             amplitudeRange = parseFloat(select.value);
+            updateSliderRanges();
+            updateAmplitudeDisplay();
             drawPlot();
             updateStatus(`Amplitude range updated to ±${amplitudeRange/2}`);
         }
@@ -918,9 +1346,11 @@
                 const phase = (2 * Math.PI * n) / sampleCount;
                 sequenceData[n] = Math.sin(phase) * 0.8;
             }
+            lastAsymmetricIndices = [];
             analyzeSequence();
             drawPlot();
             updateSampleDisplay();
+            updateCurrentValueDisplay();
             updateStatus('Loaded sine wave');
         }
         
@@ -929,9 +1359,11 @@
                 const phase = (2 * Math.PI * n) / sampleCount;
                 sequenceData[n] = Math.sign(Math.sin(phase)) * 0.8;
             }
+            lastAsymmetricIndices = [];
             analyzeSequence();
             drawPlot();
             updateSampleDisplay();
+            updateCurrentValueDisplay();
             updateStatus('Loaded square wave');
         }
         
@@ -940,9 +1372,11 @@
                 const t = n / sampleCount;
                 sequenceData[n] = (2 * (t - Math.floor(t + 0.5))) * 0.8;
             }
+            lastAsymmetricIndices = [];
             analyzeSequence();
             drawPlot();
             updateSampleDisplay();
+            updateCurrentValueDisplay();
             updateStatus('Loaded sawtooth wave');
         }
         
@@ -951,18 +1385,22 @@
                 const t = n / sampleCount;
                 sequenceData[n] = (2 * Math.abs(2 * (t - Math.floor(t + 0.5))) - 1) * 0.8;
             }
+            lastAsymmetricIndices = [];
             analyzeSequence();
             drawPlot();
             updateSampleDisplay();
+            updateCurrentValueDisplay();
             updateStatus('Loaded triangle wave');
         }
         
         function loadImpulse() {
             sequenceData.fill(0);
             sequenceData[0] = 1.0; // Unit impulse at n=0
+            lastAsymmetricIndices = [];
             analyzeSequence();
             drawPlot();
             updateSampleDisplay();
+            updateCurrentValueDisplay();
             updateStatus('Loaded unit impulse');
         }
         
@@ -970,9 +1408,11 @@
             for (let n = 0; n < sampleCount; n++) {
                 sequenceData[n] = (Math.random() - 0.5) * 1.6;
             }
+            lastAsymmetricIndices = [];
             analyzeSequence();
             drawPlot();
             updateSampleDisplay();
+            updateCurrentValueDisplay();
             updateStatus('Loaded random noise');
         }
         
@@ -1099,9 +1539,11 @@
             
             // Regenerate sequence from harmonics with new phases
             regenerateSequenceFromHarmonics();
+            lastAsymmetricIndices = [];
             drawPlot();
             updateSampleDisplay();
             updateHarmonicsDisplay();
+            updateCurrentValueDisplay();
             updateStatus('Phases scrambled');
         }
         
@@ -1133,20 +1575,24 @@
             sequenceData.fill(0);
             harmonicAmps.fill(0);
             harmonicPhases.fill(0);
+            lastAsymmetricIndices = [];
             drawPlot();
             updateSampleDisplay();
             updateHarmonicsDisplay();
+            updateCurrentValueDisplay();
             updateStatus('Sequence cleared');
         }
         
         // Export functions
         function exportCSV() {
-            let csv = 'Sample_Index,Amplitude,Time_ms,Frequency_Hz\n';
+            let csv = 'Sample_Index,Amplitude,Time_ms,Frequency_Hz,Asymmetric_Pair\n';
             const period = 1000 / fundamentalFreq; // Period in ms
             
             for (let i = 0; i < sequenceData.length; i++) {
                 const time = (i / sampleCount) * period;
-                csv += `${i},${sequenceData[i].toFixed(6)},${time.toFixed(6)},${fundamentalFreq}\n`;
+                const asymmetricPair = sampleCount - 1 - i;
+                const isAsymmetric = lastAsymmetricIndices.includes(i) ? 'YES' : 'NO';
+                csv += `${i},${sequenceData[i].toFixed(6)},${time.toFixed(6)},${fundamentalFreq},${asymmetricPair}_${isAsymmetric}\n`;
             }
             
             // Add harmonic analysis
@@ -1214,10 +1660,12 @@
                 sampleCount: sampleCount,
                 fundamentalFreq: fundamentalFreq,
                 amplitudeRange: amplitudeRange,
+                asymmetricMode: asymmetricMode,
+                lastAsymmetricIndices: lastAsymmetricIndices,
                 timestamp: new Date().toISOString(),
                 metadata: {
-                    tool: 'MATLAB-Style Stem Plot Analyzer',
-                    version: '1.0',
+                    tool: 'MATLAB-Style Stem Plot Analyzer with Asymmetric Setting',
+                    version: '1.1',
                     sampleRate: 44100
                 }
             };
@@ -1242,11 +1690,14 @@
                             sampleCount = data.sampleCount || sequenceData.length;
                             fundamentalFreq = data.fundamentalFreq || 440;
                             amplitudeRange = data.amplitudeRange || 2;
+                            asymmetricMode = data.asymmetricMode || false;
+                            lastAsymmetricIndices = data.lastAsymmetricIndices || [];
                             
                             // Update UI controls
                             document.getElementById('sampleCount').value = sampleCount;
                             document.getElementById('fundamentalFreq').value = fundamentalFreq;
                             document.getElementById('amplitudeRange').value = amplitudeRange;
+                            document.getElementById('asymmetricMode').checked = asymmetricMode;
                             
                             if (data.harmonicAmps && data.harmonicPhases) {
                                 harmonicAmps = [...data.harmonicAmps];
@@ -1255,9 +1706,11 @@
                                 analyzeSequence();
                             }
                             
+                            toggleAsymmetricMode(); // Update UI based on asymmetric mode
                             drawPlot();
                             updateSampleDisplay();
                             updateHarmonicsDisplay();
+                            updateCurrentValueDisplay();
                             updateStatus('JSON data imported');
                         }
                         
@@ -1277,10 +1730,12 @@
                             sequenceData = newSequenceData;
                             sampleCount = sequenceData.length;
                             document.getElementById('sampleCount').value = sampleCount;
+                            lastAsymmetricIndices = [];
                             
                             analyzeSequence();
                             drawPlot();
                             updateSampleDisplay();
+                            updateCurrentValueDisplay();
                             updateStatus('CSV data imported');
                         }
                     }
