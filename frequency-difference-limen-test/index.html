@@ -66,6 +66,46 @@
             line-height: 1.6;
         }
 
+        .test-mode-selection {
+            background: #fff3cd;
+            border-radius: 15px;
+            padding: 25px;
+            margin: 20px 0;
+            border-left: 5px solid #ffc107;
+        }
+
+        .test-mode-selection h3 {
+            color: #856404;
+            margin-bottom: 15px;
+        }
+
+        .mode-buttons {
+            display: flex;
+            gap: 20px;
+            justify-content: center;
+            margin-top: 20px;
+            flex-wrap: wrap;
+        }
+
+        .mode-button {
+            background: linear-gradient(45deg, #f39c12, #e67e22);
+            color: white;
+            border: none;
+            padding: 15px 25px;
+            border-radius: 50px;
+            font-size: 1.1em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 5px 15px rgba(243, 156, 18, 0.3);
+            min-width: 200px;
+        }
+
+        .mode-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(243, 156, 18, 0.4);
+        }
+
         .controls {
             display: flex;
             justify-content: center;
@@ -234,6 +274,33 @@
             box-shadow: 0 8px 25px rgba(39, 174, 96, 0.4);
         }
 
+        .back-button {
+            background: linear-gradient(45deg, #95a5a6, #7f8c8d);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 25px;
+            font-size: 1em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 3px 10px rgba(149, 165, 166, 0.3);
+            margin: 10px;
+        }
+
+        .back-button:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 5px 15px rgba(149, 165, 166, 0.4);
+        }
+
+        .mode-info {
+            background: #e8f5e8;
+            border-radius: 10px;
+            padding: 15px;
+            margin: 15px 0;
+            border-left: 5px solid #27ae60;
+        }
+
         @media (max-width: 600px) {
             .container {
                 padding: 20px;
@@ -245,6 +312,11 @@
             }
             
             .choice-buttons {
+                flex-direction: column;
+                align-items: center;
+            }
+
+            .mode-buttons {
                 flex-direction: column;
                 align-items: center;
             }
@@ -268,13 +340,32 @@
         </div>
         
         <div id="welcome-screen">
+            <div class="test-mode-selection">
+                <h3>Choose Test Mode:</h3>
+                <div class="mode-buttons">
+                    <button class="mode-button" onclick="selectTestMode('simple')">
+                        Simple Test<br>
+                        <small>(3 conditions: 0%, 0.75%, 2%)</small>
+                    </button>
+                    <button class="mode-button" onclick="selectTestMode('complete')">
+                        Complete Test<br>
+                        <small>(6 conditions: 0%, 0.25%, 0.5%, 0.75%, 1%, 2%)</small>
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        <div id="test-setup-screen" style="display: none;">
+            <div class="mode-info" id="mode-info"></div>
             <button class="start-button" onclick="startTest()">Start Test</button>
+            <button class="back-button" onclick="goBack()">← Back to Mode Selection</button>
         </div>
         
         <div id="test-screen" style="display: none;">
             <div class="test-info">
                 <div class="test-title">ABX Frequency Discrimination Test</div>
                 <div class="test-details">Listen carefully and choose which tone (A or B) sounds most similar to the reference tone X</div>
+                <div class="mode-info" id="current-mode-info"></div>
             </div>
             
             <div class="status" id="status">Click "Play X" to begin</div>
@@ -317,25 +408,66 @@
         let correctChoice;
         let testSequence = [];
         let currentTestIndex = 0;
+        let selectedTestMode = '';
         
-        // Test configuration (hidden from user)
-        const testConfigs = [
+        // Updated test configurations with new frequency ratios
+        const allTestConfigs = [
             { name: "Control Test", description: "440 Hz vs 440 Hz (0% difference)", baseFreq: 440, testFreq: 440, percentage: 0, label: "0%" },
-            { name: "±0.1% Test", description: "440 Hz vs 440.4 Hz (0.1% = 0.4 Hz difference)", baseFreq: 440, testFreq: 440.4, percentage: 0.1, label: "±0.1%" },
-            { name: "±0.15% Test", description: "440 Hz vs 440.66 Hz (0.15% = 0.66 Hz difference)", baseFreq: 440, testFreq: 440.66, percentage: 0.15, label: "±0.15%" },
-            { name: "±0.2% Test", description: "440 Hz vs 440.9 Hz (0.2% = 0.9 Hz difference)", baseFreq: 440, testFreq: 440.9, percentage: 0.2, label: "±0.2%" },
+            { name: "±0.25% Test", description: "440 Hz vs 441.1 Hz (0.25% = 1.1 Hz difference)", baseFreq: 440, testFreq: 441.1, percentage: 0.25, label: "±0.25%" },
             { name: "±0.5% Test", description: "440 Hz vs 442.2 Hz (0.5% = 2.2 Hz difference)", baseFreq: 440, testFreq: 442.2, percentage: 0.5, label: "±0.5%" },
-            { name: "±1% Test", description: "440 Hz vs 444.4 Hz (1% = 4.4 Hz difference)", baseFreq: 440, testFreq: 444.4, percentage: 1.0, label: "±1%" }
+            { name: "±0.75% Test", description: "440 Hz vs 443.3 Hz (0.75% = 3.3 Hz difference)", baseFreq: 440, testFreq: 443.3, percentage: 0.75, label: "±0.75%" },
+            { name: "±1% Test", description: "440 Hz vs 444.4 Hz (1% = 4.4 Hz difference)", baseFreq: 440, testFreq: 444.4, percentage: 1.0, label: "±1%" },
+            { name: "±2% Test", description: "440 Hz vs 448.8 Hz (2% = 8.8 Hz difference)", baseFreq: 440, testFreq: 448.8, percentage: 2.0, label: "±2%" }
         ];
         
+        // Simple test configurations (subset)
+        const simpleTestConfigs = allTestConfigs.filter(config => 
+            config.percentage === 0 || config.percentage === 0.75 || config.percentage === 2.0
+        );
+        
+        let testConfigs = [];
         const trialsPerCondition = 5;
-        const totalTrials = testConfigs.length * trialsPerCondition;
+        let totalTrials = 0;
+        
+        function selectTestMode(mode) {
+            selectedTestMode = mode;
+            
+            if (mode === 'simple') {
+                testConfigs = simpleTestConfigs;
+                totalTrials = testConfigs.length * trialsPerCondition; // 15 trials
+                document.getElementById('mode-info').innerHTML = `
+                    <h4>Simple Test Mode Selected</h4>
+                    <p><strong>Total Trials:</strong> ${totalTrials} (${trialsPerCondition} trials per condition)</p>
+                    <p><strong>Frequency Differences:</strong> 0%, 0.75%, and 2%</p>
+                    <p><strong>Duration:</strong> Approximately 5-8 minutes</p>
+                    <p>This mode tests the most important frequency discrimination thresholds for basic assessment.</p>
+                `;
+            } else {
+                testConfigs = allTestConfigs;
+                totalTrials = testConfigs.length * trialsPerCondition; // 30 trials
+                document.getElementById('mode-info').innerHTML = `
+                    <h4>Complete Test Mode Selected</h4>
+                    <p><strong>Total Trials:</strong> ${totalTrials} (${trialsPerCondition} trials per condition)</p>
+                    <p><strong>Frequency Differences:</strong> 0%, 0.25%, 0.5%, 0.75%, 1%, and 2%</p>
+                    <p><strong>Duration:</strong> Approximately 10-15 minutes</p>
+                    <p>This comprehensive mode provides detailed frequency discrimination assessment across all thresholds.</p>
+                `;
+            }
+            
+            document.getElementById('welcome-screen').style.display = 'none';
+            document.getElementById('test-setup-screen').style.display = 'block';
+        }
+        
+        function goBack() {
+            document.getElementById('test-setup-screen').style.display = 'none';
+            document.getElementById('welcome-screen').style.display = 'block';
+        }
         
         function startTest() {
             // Initialize audio context
             audioContext = new (window.AudioContext || window.webkitAudioContext)();
             
-            // Create randomized test sequence (5 trials for each of 6 conditions = 30 total)
+            // Create randomized test sequence
             testSequence = [];
             testConfigs.forEach(config => {
                 for (let i = 0; i < trialsPerCondition; i++) {
@@ -354,8 +486,12 @@
             currentTestIndex = 0;
             testResults = [];
             
+            // Update current mode info in test screen
+            const modeText = selectedTestMode === 'simple' ? 'Simple Test Mode (3 conditions)' : 'Complete Test Mode (6 conditions)';
+            document.getElementById('current-mode-info').innerHTML = `<small>Running: ${modeText}</small>`;
+            
             // Show test screen
-            document.getElementById('welcome-screen').style.display = 'none';
+            document.getElementById('test-setup-screen').style.display = 'none';
             document.getElementById('test-screen').style.display = 'block';
             
             setupTrial();
@@ -507,7 +643,8 @@
                 testCondition: currentConfig.name,
                 percentage: currentConfig.percentage,
                 label: currentConfig.label,
-                direction: direction
+                direction: direction,
+                testMode: selectedTestMode
             });
             
             // Move to next trial
@@ -546,9 +683,11 @@
             const sortedResults = Object.entries(accuracyByFrequency)
                 .sort((a, b) => parseFloat(a[0]) - parseFloat(b[0]));
             
+            const modeText = selectedTestMode === 'simple' ? 'Simple Test' : 'Complete Test';
+            
             let resultsHTML = `
                 <div style="margin-bottom: 25px;">
-                    <h4>Accuracy vs Frequency Difference</h4>
+                    <h4>Accuracy vs Frequency Difference (${modeText} Mode)</h4>
                     <div style="background: #f8f9fa; padding: 20px; border-radius: 10px;">
             `;
             
@@ -558,12 +697,12 @@
                 resultsHTML += `
                     <div style="margin: 10px 0;">
                         <div style="display: flex; align-items: center; margin-bottom: 5px;">
-                            <span style="width: 60px; font-weight: bold;">${data.label}:</span>
+                            <span style="width: 70px; font-weight: bold;">${data.label}:</span>
                             <div style="background: linear-gradient(90deg, #3498db, #2980b9); width: ${barWidth}%; height: 25px; border-radius: 5px; margin-left: 10px; display: flex; align-items: center; justify-content: center; color: white; font-weight: bold; min-width: 40px;">
                                 ${data.accuracy.toFixed(1)}%
                             </div>
                         </div>
-                        <div style="font-size: 0.9em; color: #666; margin-left: 70px;">
+                        <div style="font-size: 0.9em; color: #666; margin-left: 80px;">
                             ${data.correct}/${data.total} trials correct
                         </div>
                     </div>
@@ -575,7 +714,9 @@
                 </div>
                 <div style="background: #e8f5e8; padding: 15px; border-radius: 8px; text-align: left;">
                     <h4>Summary:</h4>
+                    <p><strong>Test Mode:</strong> ${modeText} Mode</p>
                     <p><strong>Total Trials:</strong> ${testResults.length} (${trialsPerCondition} per frequency difference)</p>
+                    <p><strong>Frequency Differences Tested:</strong> ${testConfigs.map(c => c.label).join(', ')}</p>
                     <p><strong>Test Duration:</strong> 0.8 seconds per tone</p>
                     <p><strong>Interpretation:</strong> Higher accuracy at larger frequency differences indicates better discrimination ability. 
                     Chance performance is ~50%. Scores above 70% suggest reliable discrimination at that frequency difference.
@@ -586,6 +727,7 @@
             document.getElementById('results-content').innerHTML = resultsHTML;
             
             // Log detailed results to console for research purposes
+            console.log('ABX Test Results - Test Mode:', selectedTestMode);
             console.log('ABX Test Results - Accuracy by Frequency:', accuracyByFrequency);
             console.log('Detailed trial data:', testResults);
         }
@@ -598,6 +740,11 @@
                 audioContext.close();
                 audioContext = null;
             }
+            
+            // Reset variables
+            selectedTestMode = '';
+            testConfigs = [];
+            totalTrials = 0;
         }
     </script>
 </body>
