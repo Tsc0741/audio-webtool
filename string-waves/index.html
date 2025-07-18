@@ -1,0 +1,952 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Plucked String Physics Visualization</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            color: white;
+            min-height: 100vh;
+        }
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+        }
+        h1 {
+            text-align: center;
+            font-size: 2.5em;
+            margin-bottom: 30px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+        }
+        .visualization-grid {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 30px;
+            margin-bottom: 30px;
+        }
+        .left-panel {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+        .wave-container, .amplitude-container, .frequency-container {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 15px;
+            padding: 20px;
+            border: 2px solid rgba(255, 255, 255, 0.2);
+        }
+        .controls-container {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 15px;
+            padding: 20px;
+            border: 2px solid rgba(255, 255, 255, 0.2);
+        }
+        canvas {
+            width: 100%;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-radius: 10px;
+            background: rgba(0, 0, 0, 0.2);
+        }
+        .wave-canvas {
+            height: 250px;
+        }
+        .amplitude-canvas {
+            height: 200px;
+            cursor: pointer;
+        }
+        .frequency-canvas {
+            height: 180px;
+        }
+        .control-group {
+            margin-bottom: 20px;
+        }
+        .control-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+            color: #e0e0e0;
+        }
+        .slider-container {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        input[type="range"] {
+            flex: 1;
+            height: 8px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 5px;
+            outline: none;
+            -webkit-appearance: none;
+        }
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 20px;
+            height: 20px;
+            background: #4CAF50;
+            border-radius: 50%;
+            cursor: pointer;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+        }
+        input[type="range"]::-moz-range-thumb {
+            width: 20px;
+            height: 20px;
+            background: #4CAF50;
+            border-radius: 50%;
+            cursor: pointer;
+            border: none;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+        }
+        .value-display {
+            min-width: 60px;
+            text-align: center;
+            background: rgba(255, 255, 255, 0.1);
+            padding: 5px 10px;
+            border-radius: 5px;
+            font-family: monospace;
+        }
+        .button-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+        }
+        button {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            background: linear-gradient(45deg, #4CAF50, #45a049);
+            color: white;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        }
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+        }
+        button:active {
+            transform: translateY(0);
+        }
+        .stop-btn {
+            background: linear-gradient(45deg, #f44336, #d32f2f) !important;
+        }
+        .section-header {
+            font-size: 1.2em;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid rgba(255, 255, 255, 0.3);
+            color: #4CAF50;
+        }
+        .info-box {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 20px;
+            border-left: 4px solid #4CAF50;
+        }
+        .audio-controls {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-top: 15px;
+        }
+        .volume-control {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎸 Plucked String Physics Visualization 🎸</h1>
+        
+        <div class="visualization-grid">
+            <div class="left-panel">
+                <div class="wave-container">
+                    <div class="section-header">String Wave at Current Time</div>
+                    <canvas id="waveCanvas" class="wave-canvas"></canvas>
+                </div>
+                
+                <div class="amplitude-container">
+                    <div class="section-header">Amplitude vs Time at x = L/2</div>
+                    <canvas id="amplitudeCanvas" class="amplitude-canvas"></canvas>
+                </div>
+                
+                <div class="frequency-container">
+                    <div class="section-header">Modal Amplitudes (dB relative to Mode 1)</div>
+                    <canvas id="frequencyCanvas" class="frequency-canvas"></canvas>
+                </div>
+            </div>
+            
+            <div class="controls-container">
+                <div class="section-header">String Parameters</div>
+                
+                <div class="control-group">
+                    <label for="lengthSlider">String Length (L) [m]:</label>
+                    <div class="slider-container">
+                        <input type="range" id="lengthSlider" min="0.25" max="1" step="0.05" value="0.65">
+                        <span class="value-display" id="lengthValue">0.65</span>
+                    </div>
+                </div>
+                
+                <div class="control-group">
+                    <label for="speedSlider">Wave Speed (c) [m/s]:</label>
+                    <div class="slider-container">
+                        <input type="range" id="speedSlider" min="250" max="400" step="10" value="320">
+                        <span class="value-display" id="speedValue">320</span>
+                    </div>
+                </div>
+                
+                <div class="control-group">
+                    <label for="modesSlider">Number of Modes (N):</label>
+                    <div class="slider-container">
+                        <input type="range" id="modesSlider" min="1" max="20" step="1" value="10">
+                        <span class="value-display" id="modesValue">10</span>
+                    </div>
+                </div>
+                
+                <div class="control-group">
+                    <label for="dampingSlider">Damping (a):</label>
+                    <div class="slider-container">
+                        <input type="range" id="dampingSlider" min="0" max="1" step="0.01" value="0.17">
+                        <span class="value-display" id="dampingValue">0.17</span>
+                    </div>
+                </div>
+                
+                <div class="section-header">Plucking Parameters</div>
+                
+                <div class="control-group">
+                    <label for="positionSlider">Pluck Position (q = l/L):</label>
+                    <div class="slider-container">
+                        <input type="range" id="positionSlider" min="0.1" max="0.9" step="0.05" value="0.3">
+                        <span class="value-display" id="positionValue">0.30</span>
+                    </div>
+                </div>
+                
+                <div class="control-group">
+                    <label for="strengthSlider">Pluck Strength (A):</label>
+                    <div class="slider-container">
+                        <input type="range" id="strengthSlider" min="0.1" max="2" step="0.1" value="0.5">
+                        <span class="value-display" id="strengthValue">0.5</span>
+                    </div>
+                </div>
+                
+                <div class="control-group">
+                    <label for="displacementSlider">Displacement Ratio (h):</label>
+                    <div class="slider-container">
+                        <input type="range" id="displacementSlider" min="0" max="1" step="0.1" value="0.7">
+                        <span class="value-display" id="displacementValue">0.7</span>
+                    </div>
+                </div>
+                
+                <div class="info-box">
+                    <strong>Pluck Types:</strong><br>
+                    • h = 1, U = 0: Pin release (pure displacement)<br>
+                    • h = 0, U = 1: Quick drag (pure velocity)<br>
+                    • Mixed values: Combination of both
+                </div>
+                
+                <div class="button-group">
+                    <button id="startBtn">Start Animation</button>
+                    <button id="stopBtn" class="stop-btn">Stop</button>
+                    <button id="resetBtn">Reset t=0</button>
+                </div>
+                
+                <div class="audio-controls">
+                    <button id="playAudioBtn">🔊 Play Sound</button>
+                    <div class="volume-control">
+                        <label>Volume:</label>
+                        <input type="range" id="volumeSlider" min="0" max="1" step="0.1" value="0.3">
+                        <span class="value-display" id="volumeValue">0.3</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        class PluckedStringVisualizer {
+            constructor() {
+                this.canvas = document.getElementById('waveCanvas');
+                this.ctx = this.canvas.getContext('2d');
+                this.amplitudeCanvas = document.getElementById('amplitudeCanvas');
+                this.amplitudeCtx = this.amplitudeCanvas.getContext('2d');
+                this.freqCanvas = document.getElementById('frequencyCanvas');
+                this.freqCtx = this.freqCanvas.getContext('2d');
+                
+                this.setupCanvas();
+                this.setupControls();
+                this.setupAudio();
+                
+                this.animationId = null;
+                this.time = 0;
+                this.isPlaying = false;
+                this.audioContext = null;
+                this.oscillators = [];
+                this.gainNode = null;
+                this.timeRange = 1; // Default 1 second time range
+                
+                this.updateAllPlots();
+            }
+            
+            setupCanvas() {
+                const setCanvasSize = (canvas) => {
+                    const rect = canvas.getBoundingClientRect();
+                    canvas.width = rect.width * window.devicePixelRatio;
+                    canvas.height = rect.height * window.devicePixelRatio;
+                    const ctx = canvas.getContext('2d');
+                    ctx.scale(window.devicePixelRatio, window.devicePixelRatio);
+                };
+                
+                setCanvasSize(this.canvas);
+                setCanvasSize(this.amplitudeCanvas);
+                setCanvasSize(this.freqCanvas);
+            }
+            
+            setupControls() {
+                const controls = {
+                    'lengthSlider': 'lengthValue',
+                    'speedSlider': 'speedValue',
+                    'modesSlider': 'modesValue',
+                    'dampingSlider': 'dampingValue',
+                    'positionSlider': 'positionValue',
+                    'strengthSlider': 'strengthValue',
+                    'displacementSlider': 'displacementValue',
+                    'volumeSlider': 'volumeValue'
+                };
+                
+                Object.entries(controls).forEach(([sliderId, valueId]) => {
+                    const slider = document.getElementById(sliderId);
+                    const value = document.getElementById(valueId);
+                    
+                    slider.addEventListener('input', () => {
+                        const val = parseFloat(slider.value);
+                        if (sliderId === 'lengthSlider') {
+                            value.textContent = val.toFixed(2);
+                        } else if (sliderId === 'positionSlider' || sliderId === 'displacementSlider' || sliderId === 'volumeSlider') {
+                            value.textContent = val.toFixed(2);
+                        } else if (sliderId === 'dampingSlider') {
+                            value.textContent = val.toFixed(2); // Display 0-1 range
+                        } else {
+                            value.textContent = val.toString();
+                        }
+                        this.updateAllPlots();
+                    });
+                });
+                
+                document.getElementById('startBtn').addEventListener('click', () => this.startAnimation());
+                document.getElementById('stopBtn').addEventListener('click', () => this.stopAnimation());
+                document.getElementById('resetBtn').addEventListener('click', () => this.resetTime());
+                document.getElementById('playAudioBtn').addEventListener('click', () => this.toggleAudio());
+                
+                // Add click listener for amplitude canvas to change time range
+                this.amplitudeCanvas.addEventListener('click', (event) => {
+                    event.preventDefault();
+                    // Toggle between 1 second and 10*L/c
+                    const params = this.getParameters();
+                    const longRange = 10 * params.L / params.c;
+                    this.timeRange = this.timeRange === 1 ? longRange : 1;
+                    console.log('Time range toggled to:', this.timeRange); // Debug log
+                    this.updateAllPlots();
+                });
+            }
+            
+            setupAudio() {
+                // Audio will be initialized when first needed
+            }
+            
+            getParameters() {
+                const dampingDisplay = parseFloat(document.getElementById('dampingSlider').value);
+                const dampingActual = dampingDisplay * 0.000001; // Scale 0-1 display to 0-0.000001 actual
+                
+                return {
+                    L: parseFloat(document.getElementById('lengthSlider').value),
+                    c: parseFloat(document.getElementById('speedSlider').value),
+                    N: parseInt(document.getElementById('modesSlider').value),
+                    a: dampingActual,
+                    q: parseFloat(document.getElementById('positionSlider').value),
+                    A: parseFloat(document.getElementById('strengthSlider').value),
+                    h: parseFloat(document.getElementById('displacementSlider').value),
+                    volume: parseFloat(document.getElementById('volumeSlider').value)
+                };
+            }
+            
+            calculateModalAmplitude(n, params) {
+                const { L, c, q, A, h } = params;
+                const U = Math.sqrt(1 - h * h);
+                
+                const qTerm = Math.sin(n * q * Math.PI);
+                const dispCoeff = this.calculateDispCoeff(n, params);
+                const velCoeff = this.calculateVelCoeff(n, params);
+                
+                return A * h * dispCoeff + A * U * velCoeff;
+            }
+
+	calculateDispCoeff(n, params) {
+                const { L, c, q, A, h } = params;
+                
+                const qTerm = Math.sin(n * q * Math.PI);
+		const dispCoeff = (2 / (n * Math.PI * n * Math.PI)) * (1/q + 1/(1-q)) * qTerm;
+
+                
+                return dispCoeff;
+            }
+	calculateVelCoeff(n, params) {
+                const { L, c, q, A, h } = params;
+                
+                const qTerm = Math.sin(n * q * Math.PI);
+                const velCoeff = (2 / (n * Math.PI * c)) * qTerm;
+                
+                return velCoeff;
+            }
+
+            
+            calculateWave(x, t, params) {
+                const { L, c, N , q, A, h} = params;
+                const U = Math.sqrt(1 - h * h);
+                const a = params.a * 50; // Multiply damping by 50 for visible decay in wave animation
+                
+                let displacement = 0;
+                
+                for (let n = 1; n <= N; n++) {
+                    const omega = (n * Math.PI / L) * c;
+                    const decay = Math.exp(-a * omega * omega * t);
+                    const spatialTerm = Math.sin(n * Math.PI * x / L);
+                    const dispMode = Math.cos(omega * t);
+		    const velMode = Math.sin(omega * t);
+                    
+                    const dispModeAmp = this.calculateDispCoeff(n, params);
+                    const velModeAmp = this.calculateVelCoeff(n, params);
+                    displacement += A*(h * dispModeAmp * dispMode + U*100 * velModeAmp * velMode) * spatialTerm * decay;
+                }
+                
+                return displacement;
+            }
+            
+            calculateAmplitudeAtCenter(t, params) {
+                const { L, c, N } = params;
+                const a = params.a * 50; // Multiply damping by 50 for visible decay in amplitude plot
+                const x = L / 2;
+                
+                let amplitude = 0;
+                
+                for (let n = 1; n <= N; n++) {
+                    const omega = (n * Math.PI / L) * c;
+                    const decay = Math.exp(-a * omega * omega * t);
+                    const spatialTerm = Math.sin(n * Math.PI / 2); // sin(nπ/2) for x = L/2
+                    
+                    const modalAmplitude = this.calculateModalAmplitude(n, params);
+                    amplitude += modalAmplitude * spatialTerm * Math.cos(omega * t) * decay;
+                }
+                
+                // Apply smooth turn-on function for t < 0
+                if (t < 0) {
+                    const turnOnTime = 0.1; // 100ms turn-on
+                    const smoothFactor = Math.exp(t / turnOnTime);
+                    amplitude *= smoothFactor;
+                }
+                
+                return amplitude;
+            }
+            
+            // New function to calculate envelope decay at x=L/2 with REAL damping
+            calculateEnvelopeAtCenter(t, params) {
+                const { L, c, a, q, A, h } = params; // Use REAL damping (no multiplication)
+                const U = Math.sqrt(1 - h * h);
+                
+                let envelope = 0;
+                
+                for (let n = 1; n <= params.N; n++) {
+                    const omega = (n * Math.PI / L) * c;
+                    const decay = Math.exp(-a * omega * omega * t); // Real damping for envelope
+                    const spatialTerm = Math.sin(n * Math.PI / 2); // sin(nπ/2) for x = L/2
+                    const qTerm = Math.sin(n * q * Math.PI);
+                    
+                    // Calculate modal amplitude (same as before)
+                    const dispCoeff = (2 * A * h) / (n * Math.PI * n * Math.PI) * (1/q + 1/(1-q)) * qTerm;
+                    const velCoeff = (2 * U * A) / (n * Math.PI * c) * qTerm;
+                    const modalAmplitude = dispCoeff + velCoeff;
+                    
+                    // Only the envelope decay (no oscillation)
+                    envelope += Math.abs(modalAmplitude * spatialTerm) * decay;
+                }
+                
+                return envelope;
+            }
+            calculateAnalyticalSignalAtCenter(t, params) {
+                const { L, c, a, q, A, h } = params; // Use REAL damping (no multiplication)
+                const U = Math.sqrt(1 - h * h);
+                
+                let signal = 0;
+                
+                for (let n = 1; n <= Math.min(10, params.N); n++) { // Use up to 10 modes
+                    const omega = (n * Math.PI / L) * c;
+                    const decay = Math.exp(-a * omega * omega * t); // Real damping for audio
+                    const spatialTerm = Math.sin(n * Math.PI / 2); // sin(nπ/2) for x = L/2
+                    const qTerm = Math.sin(n * q * Math.PI);
+                    
+                    // Displacement component
+                    const dispCoeff = (2 * A * h) / (n * Math.PI * n * Math.PI) * (1/q + 1/(1-q)) * qTerm;
+                    const dispTerm = dispCoeff * spatialTerm * Math.cos(omega * t) * decay;
+                    
+                    // Velocity component  
+                    const velCoeff = (2 * U * A) / (n * Math.PI * c) * qTerm;
+                    const velTerm = velCoeff * spatialTerm * Math.sin(omega * t) * decay;
+                    
+                    signal += dispTerm + velTerm;
+                }
+                
+                return signal;
+            }
+            
+            updateAllPlots() {
+                if (this.isPlaying) return;
+                
+                this.drawWave();
+                this.drawAmplitudePlot();
+                this.drawFrequencyResponse();
+            }
+            
+            drawWave() {
+                const rect = this.canvas.getBoundingClientRect();
+                const width = rect.width;
+                const height = rect.height;
+                
+                this.ctx.clearRect(0, 0, width, height);
+                
+                const params = this.getParameters();
+                const points = 200;
+                
+                // Draw string boundaries
+                this.ctx.strokeStyle = 'rgba(255, 255, 255, 0.3)';
+                this.ctx.lineWidth = 2;
+                this.ctx.beginPath();
+                this.ctx.moveTo(50, height/2);
+                this.ctx.lineTo(width - 50, height/2);
+                this.ctx.stroke();
+                
+                // Draw pluck position indicator
+                const pluckX = 50 + (width - 100) * params.q;
+                this.ctx.strokeStyle = '#ff6b6b';
+                this.ctx.lineWidth = 3;
+                this.ctx.beginPath();
+                this.ctx.moveTo(pluckX, height/2 - 30);
+                this.ctx.lineTo(pluckX, height/2 + 30);
+                this.ctx.stroke();
+                
+                // Draw wave
+                this.ctx.strokeStyle = '#4CAF50';
+                this.ctx.lineWidth = 3;
+                this.ctx.beginPath();
+                
+                for (let i = 0; i <= points; i++) {
+                    const x = (i / points) * params.L;
+                    const y = this.calculateWave(x, this.time, params);
+                    
+                    const canvasX = 50 + (width - 100) * (i / points);
+                    const canvasY = height/2 - y * 100; // Scale for visibility
+                    
+                    if (i === 0) {
+                        this.ctx.moveTo(canvasX, canvasY);
+                    } else {
+                        this.ctx.lineTo(canvasX, canvasY);
+                    }
+                }
+                
+                this.ctx.stroke();
+                
+                // Draw L/2 marker
+                const midX = 50 + (width - 100) * 0.5;
+                this.ctx.strokeStyle = '#ffeb3b';
+                this.ctx.lineWidth = 2;
+                this.ctx.setLineDash([5, 5]);
+                this.ctx.beginPath();
+                this.ctx.moveTo(midX, 0);
+                this.ctx.lineTo(midX, height);
+                this.ctx.stroke();
+                this.ctx.setLineDash([]);
+                
+                // Add labels
+                this.ctx.fillStyle = 'white';
+                this.ctx.font = '14px Arial';
+                this.ctx.fillText('Pluck Position', pluckX - 40, height/2 + 50);
+                this.ctx.fillText('L/2', midX - 10, height - 10);
+                this.ctx.fillText('0', 45, height/2 + 20);
+                this.ctx.fillText('L', width - 55, height/2 + 20);
+            }
+            
+            drawAmplitudePlot() {
+                const rect = this.amplitudeCanvas.getBoundingClientRect();
+                const width = rect.width;
+                const height = rect.height;
+                
+                this.amplitudeCtx.clearRect(0, 0, width, height);
+                
+                const params = this.getParameters();
+                const timeSpan = this.timeRange; // Use current time range setting
+                const timePoints = 500;
+                
+                // Calculate amplitude data
+                const amplitudeData = [];
+                let maxAmplitude = 0;
+                
+                for (let i = 0; i < timePoints; i++) {
+                    const t = (i / timePoints) * timeSpan;
+                    let amp;
+                    
+                    if (this.timeRange === 1) {
+                        // For 1 second view: show envelope decay with REAL damping
+                        amp = this.calculateEnvelopeAtCenter(t, params);
+                    } else {
+                        // For long time view: show full oscillating signal with enhanced damping
+                        amp = this.calculateAmplitudeAtCenter(t, params);
+                    }
+                    
+                    amplitudeData.push(amp);
+                    maxAmplitude = Math.max(maxAmplitude, Math.abs(amp));
+                }
+                
+                // Make y-limits symmetric
+                const yLimit = maxAmplitude || 1;
+                
+                // Draw axes
+                this.amplitudeCtx.strokeStyle = 'rgba(255, 255, 255, 0.3)';
+                this.amplitudeCtx.lineWidth = 1;
+                this.amplitudeCtx.beginPath();
+                this.amplitudeCtx.moveTo(50, height - 30);
+                this.amplitudeCtx.lineTo(width - 20, height - 30);
+                this.amplitudeCtx.moveTo(50, height - 30);
+                this.amplitudeCtx.lineTo(50, 20);
+                this.amplitudeCtx.stroke();
+                
+                // Draw zero line
+                const zeroY = height/2;
+                this.amplitudeCtx.strokeStyle = 'rgba(255, 255, 255, 0.2)';
+                this.amplitudeCtx.lineWidth = 1;
+                this.amplitudeCtx.setLineDash([3, 3]);
+                this.amplitudeCtx.beginPath();
+                this.amplitudeCtx.moveTo(50, zeroY);
+                this.amplitudeCtx.lineTo(width - 20, zeroY);
+                this.amplitudeCtx.stroke();
+                this.amplitudeCtx.setLineDash([]);
+                
+                // Draw amplitude curve
+                this.amplitudeCtx.strokeStyle = this.timeRange === 1 ? '#ff9800' : '#00bcd4'; // Orange for envelope, blue for oscillation
+                this.amplitudeCtx.lineWidth = 2;
+                this.amplitudeCtx.beginPath();
+                
+                for (let i = 0; i < amplitudeData.length; i++) {
+                    const x = 50 + (width - 70) * (i / (amplitudeData.length - 1));
+                    const y = zeroY - (amplitudeData[i] / yLimit) * (height - 50) * 0.4; // Use symmetric scaling
+                    
+                    if (i === 0) {
+                        this.amplitudeCtx.moveTo(x, y);
+                    } else {
+                        this.amplitudeCtx.lineTo(x, y);
+                    }
+                }
+                
+                this.amplitudeCtx.stroke();
+                
+                // Draw current time marker if animating
+                if (this.isPlaying && this.time <= timeSpan) {
+                    const currentX = 50 + (width - 70) * (this.time / timeSpan);
+                    this.amplitudeCtx.strokeStyle = '#ff6b6b';
+                    this.amplitudeCtx.lineWidth = 2;
+                    this.amplitudeCtx.beginPath();
+                    this.amplitudeCtx.moveTo(currentX, 20);
+                    this.amplitudeCtx.lineTo(currentX, height - 30);
+                    this.amplitudeCtx.stroke();
+                }
+                
+                // Labels
+                this.amplitudeCtx.fillStyle = 'white';
+                this.amplitudeCtx.font = '12px Arial';
+                const plotType = this.timeRange === 1 ? ' (Envelope Decay)' : ' (Full Signal)';
+                this.amplitudeCtx.fillText('Time (click to toggle)' + plotType, width/2 - 100, height - 5);
+                this.amplitudeCtx.fillText('0', 45, height - 15);
+                
+                // Dynamic time label based on current range
+                if (this.timeRange === 1) {
+                    this.amplitudeCtx.fillText('1s', width - 25, height - 15);
+                } else {
+                    this.amplitudeCtx.fillText('10L/c', width - 45, height - 15);
+                }
+                
+                this.amplitudeCtx.save();
+                this.amplitudeCtx.translate(15, height/2);
+                this.amplitudeCtx.rotate(-Math.PI/2);
+                const yLabel = this.timeRange === 1 ? 'Envelope' : 'Amplitude';
+                this.amplitudeCtx.fillText(yLabel, -30, 0);
+                this.amplitudeCtx.restore();
+                
+                // Y-axis labels (symmetric)
+                this.amplitudeCtx.fillStyle = 'white';
+                this.amplitudeCtx.font = '10px Arial';
+                this.amplitudeCtx.fillText(`+${yLimit.toFixed(3)}`, 10, 25);
+                this.amplitudeCtx.fillText('0', 40, zeroY + 3);
+                this.amplitudeCtx.fillText(`-${yLimit.toFixed(3)}`, 10, height - 35);
+            }
+            
+            drawFrequencyResponse() {
+                const rect = this.freqCanvas.getBoundingClientRect();
+                const width = rect.width;
+                const height = rect.height;
+                
+                this.freqCtx.clearRect(0, 0, width, height);
+                
+                const params = this.getParameters();
+                const { N } = params;
+                
+                // Calculate modal amplitudes
+                const modalAmplitudes = [];
+                let mode1Amplitude = 0;
+                
+                for (let n = 1; n <= N; n++) {
+                    const amp = Math.abs(this.calculateModalAmplitude(n, params));
+                    modalAmplitudes.push(amp);
+                    if (n === 1) {
+                        mode1Amplitude = amp;
+                    }
+                }
+                
+                // Convert to decibels relative to mode 1
+                const modalAmplitudesDB = modalAmplitudes.map(amp => {
+                    if (mode1Amplitude === 0 || amp === 0) return -60; // -60 dB floor
+                    const dbValue = 20 * Math.log10(amp / mode1Amplitude);
+                    return Math.max(-60, dbValue); // Clip at -60 dB
+                });
+                
+                // Find min and max for scaling (with reasonable bounds)
+                const minDB = Math.max(-60, Math.min(...modalAmplitudesDB));
+                const maxDB = Math.max(0, Math.max(...modalAmplitudesDB));
+                const dbRange = maxDB - minDB || 1;
+                
+                // Draw axes
+                this.freqCtx.strokeStyle = 'rgba(255, 255, 255, 0.3)';
+                this.freqCtx.lineWidth = 1;
+                this.freqCtx.beginPath();
+                this.freqCtx.moveTo(50, height - 30);
+                this.freqCtx.lineTo(width - 20, height - 30);
+                this.freqCtx.moveTo(50, height - 30);
+                this.freqCtx.lineTo(50, 20);
+                this.freqCtx.stroke();
+                
+                // Draw 0 dB reference line
+                const zeroDBY = height - 30 - ((0 - minDB) / dbRange) * (height - 50);
+                this.freqCtx.strokeStyle = 'rgba(255, 255, 0, 0.5)';
+                this.freqCtx.lineWidth = 1;
+                this.freqCtx.setLineDash([3, 3]);
+                this.freqCtx.beginPath();
+                this.freqCtx.moveTo(50, zeroDBY);
+                this.freqCtx.lineTo(width - 20, zeroDBY);
+                this.freqCtx.stroke();
+                this.freqCtx.setLineDash([]);
+                
+                // Draw bars
+                const barWidth = (width - 70) / N;
+                
+                for (let n = 0; n < N; n++) {
+                    const x = 50 + n * barWidth;
+                    const dbValue = modalAmplitudesDB[n];
+                    const normalizedHeight = (dbValue - minDB) / dbRange;
+                    const barHeight = normalizedHeight * (height - 50);
+                    const y = height - 30 - barHeight;
+                    
+                    // Color based on dB value (red for negative, green for positive)
+                    let hue;
+                    if (dbValue >= 0) {
+                        hue = 120; // Green for positive dB
+                    } else {
+                        hue = 0; // Red for negative dB
+                    }
+                    const saturation = Math.min(70, Math.abs(dbValue) * 2);
+                    
+                    // Bar fill
+                    this.freqCtx.fillStyle = `hsl(${hue}, ${saturation}%, 50%)`;
+                    this.freqCtx.fillRect(x + 2, y, barWidth - 4, barHeight);
+                    
+                    // Bar outline
+                    this.freqCtx.strokeStyle = 'rgba(255, 255, 255, 0.8)';
+                    this.freqCtx.lineWidth = 1;
+                    this.freqCtx.strokeRect(x + 2, y, barWidth - 4, barHeight);
+                    
+                    // Mode number labels (every 5th mode)
+                    if ((n + 1) % 5 === 0 || n === 0) {
+                        this.freqCtx.fillStyle = 'white';
+                        this.freqCtx.font = '10px Arial';
+                        this.freqCtx.fillText(n + 1, x + barWidth/2 - 5, height - 10);
+                    }
+                }
+                
+                // dB scale labels
+                this.freqCtx.fillStyle = 'white';
+                this.freqCtx.font = '10px Arial';
+                this.freqCtx.fillText('0 dB', 20, zeroDBY + 3);
+                if (minDB < -10) {
+                    const minDBY = height - 30;
+                    this.freqCtx.fillText(`${minDB.toFixed(0)} dB`, 10, minDBY + 3);
+                }
+                
+                // Labels
+                this.freqCtx.fillStyle = 'white';
+                this.freqCtx.font = '12px Arial';
+                this.freqCtx.fillText('Mode Number', width/2 - 40, height - 5);
+                this.freqCtx.save();
+                this.freqCtx.translate(15, height/2);
+                this.freqCtx.rotate(-Math.PI/2);
+                this.freqCtx.fillText('Amplitude (dB)', -40, 0);
+                this.freqCtx.restore();
+            }
+            
+            animate() {
+                if (!this.isPlaying) return;
+                
+                // Slow down animation by 400x to see wave motion clearly
+                this.time += 0.00005;
+                
+                this.drawWave();
+                this.drawAmplitudePlot();
+                
+                this.animationId = requestAnimationFrame(() => this.animate());
+            }
+            
+            resetTime() {
+                this.time = 0;
+                this.updateAllPlots();
+            }
+            
+            startAnimation() {
+                this.isPlaying = true;
+                this.animate();
+            }
+            
+            stopAnimation() {
+                this.isPlaying = false;
+                if (this.animationId) {
+                    cancelAnimationFrame(this.animationId);
+                }
+                this.stopAudio();
+            }
+            
+            async initAudio() {
+                if (!this.audioContext) {
+                    this.audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                    this.gainNode = this.audioContext.createGain();
+                    this.gainNode.connect(this.audioContext.destination);
+                }
+                
+                if (this.audioContext.state === 'suspended') {
+                    await this.audioContext.resume();
+                }
+            }
+            
+            async toggleAudio() {
+                if (this.oscillators.length > 0) {
+                    this.stopAudio();
+                } else {
+                    await this.playAudio();
+                }
+            }
+            
+            async playAudio() {
+                await this.initAudio();
+                
+                const params = this.getParameters();
+                const sampleRate = 44100; // 44.1 kHz
+                const duration = 3; // 3 seconds
+                const numSamples = sampleRate * duration;
+                
+                // Create audio buffer
+                const audioBuffer = this.audioContext.createBuffer(1, numSamples, sampleRate);
+                const channelData = audioBuffer.getChannelData(0);
+                
+                // Sample the analytical function at x=L/2
+                let maxAmplitude = 0;
+                for (let i = 0; i < numSamples; i++) {
+                    const t = i / sampleRate;
+                    const amplitude = this.calculateAnalyticalSignalAtCenter(t, params);
+                    channelData[i] = amplitude;
+                    maxAmplitude = Math.max(maxAmplitude, Math.abs(amplitude));
+                }
+                
+                // Normalize the audio data
+                if (maxAmplitude > 0) {
+                    for (let i = 0; i < numSamples; i++) {
+                        channelData[i] = (channelData[i] / maxAmplitude) * params.volume * 0.3; // Normalize then apply volume
+                    }
+                }
+                
+                // Play the buffer
+                const source = this.audioContext.createBufferSource();
+                source.buffer = audioBuffer;
+                source.connect(this.audioContext.destination);
+                source.start();
+                
+                // Update button
+                document.getElementById('playAudioBtn').textContent = '🔇 Stop Sound';
+                
+                // Store source for stopping
+                this.currentAudioSource = source;
+                
+                // Auto-stop after duration
+                source.onended = () => {
+                    this.stopAudio();
+                };
+            }
+            
+            stopAudio() {
+                if (this.currentAudioSource) {
+                    try {
+                        this.currentAudioSource.stop();
+                    } catch (e) {
+                        // Source might already be stopped
+                    }
+                    this.currentAudioSource = null;
+                }
+                
+                this.oscillators.forEach(osc => {
+                    try {
+                        osc.stop();
+                    } catch (e) {
+                        // Oscillator might already be stopped
+                    }
+                });
+                this.oscillators = [];
+                document.getElementById('playAudioBtn').textContent = '🔊 Play Sound';
+            }
+        }
+        
+        // Initialize the visualizer when page loads
+        window.addEventListener('load', () => {
+            window.visualizer = new PluckedStringVisualizer();
+        });
+        
+        // Handle window resize
+        window.addEventListener('resize', () => {
+            // Reinitialize if needed
+            setTimeout(() => {
+                if (window.visualizer) {
+                    window.visualizer.setupCanvas();
+                    window.visualizer.updateAllPlots();
+                }
+            }, 100);
+        });
+    </script>
+</body>
+</html>
+                        
